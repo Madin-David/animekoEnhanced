@@ -33,6 +33,7 @@ import me.him188.ani.app.data.models.preference.OneshotActionConfig
 import me.him188.ani.app.data.models.preference.ProfileSettings
 import me.him188.ani.app.data.models.preference.ProxySettings
 import me.him188.ani.app.data.models.preference.ThemeSettings
+import me.him188.ani.app.data.models.preference.TorrentDownloaderConfig
 import me.him188.ani.app.data.models.preference.TorrentPeerConfig
 import me.him188.ani.app.data.models.preference.UISettings
 import me.him188.ani.app.data.models.preference.UpdateSettings
@@ -76,6 +77,7 @@ interface SettingsRepository {
     val videoResolverSettings: Settings<VideoResolverSettings>
     val anitorrentConfig: Settings<AnitorrentConfig>
     val torrentPeerConfig: Settings<TorrentPeerConfig>
+    val torrentDownloaderConfig: Settings<TorrentDownloaderConfig>
 
     val oneshotActionConfig: Settings<OneshotActionConfig>
 
@@ -228,6 +230,12 @@ class PreferencesRepositoryImpl(
         "torrentPeerConfig",
         TorrentPeerConfig.serializer(),
         default = { TorrentPeerConfig.Default },
+    )
+
+    override val torrentDownloaderConfig: Settings<TorrentDownloaderConfig> = SerializablePreference(
+        "torrentDownloaderConfig",
+        TorrentDownloaderConfig.serializer(),
+        default = { TorrentDownloaderConfig.Default },
     )
 
     override val oneshotActionConfig: Settings<OneshotActionConfig> = SerializablePreference(

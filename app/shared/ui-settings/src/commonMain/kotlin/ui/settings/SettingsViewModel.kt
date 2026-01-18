@@ -35,6 +35,7 @@ import me.him188.ani.app.data.models.preference.ProfileSettings
 import me.him188.ani.app.data.models.preference.ProxyMode
 import me.him188.ani.app.data.models.preference.ProxySettings
 import me.him188.ani.app.data.models.preference.ThemeSettings
+import me.him188.ani.app.data.models.preference.TorrentDownloaderConfig
 import me.him188.ani.app.data.models.preference.TorrentPeerConfig
 import me.him188.ani.app.data.models.preference.UISettings
 import me.him188.ani.app.data.models.preference.UpdateSettings
@@ -131,6 +132,9 @@ class SettingsViewModel : AbstractSettingsViewModel(), KoinComponent {
 
     val torrentSettingsState: SettingsState<AnitorrentConfig> =
         settingsRepository.anitorrentConfig.stateInBackground(AnitorrentConfig.Default.copy(_placeholder = -1))
+
+    val torrentDownloaderConfigState: SettingsState<TorrentDownloaderConfig> =
+        settingsRepository.torrentDownloaderConfig.stateInBackground(TorrentDownloaderConfig.Default.copy(_placeholder = -1))
 
     val cacheDirectoryGroupState = CacheDirectoryGroupState(
         mediaCacheSettingsState,
