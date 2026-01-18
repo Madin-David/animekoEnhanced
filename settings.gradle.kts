@@ -77,6 +77,7 @@ includeProject(":utils:http-downloader")
 
 includeProject(":torrent:torrent-api", "torrent/api") // Torrent 系统 API
 includeProject(":torrent:anitorrent")
+includeProject(":torrent:qbittorrent")
 //includeProject(":torrent:anitorrent:anitorrent-native")
 
 includeProject(":app:shared")
