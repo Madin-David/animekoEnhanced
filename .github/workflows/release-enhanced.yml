@@ -1,0 +1,246 @@
+name: 'Release AnimekoEnhanced'
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  create-release:
+    name: 'Create Release'
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: '${{ steps.create_release.outputs.upload_url }}'
+      release_id: '${{ steps.create_release.outputs.id }}'
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+
+      - name: 'Get Tag'
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 'Create Release'
+        id: create_release
+        uses: 'softprops/action-gh-release@v1'
+        with:
+          tag_name: '${{ steps.get_tag.outputs.tag }}'
+          name: 'AnimekoEnhanced ${{ steps.get_tag.outputs.tag }}'
+          draft: true
+          prerelease: ${{ contains(steps.get_tag.outputs.tag, '-') }}
+          body: |
+            ## AnimekoEnhanced ${{ steps.get_tag.outputs.tag }}
+
+            ### 下载 / Downloads
+
+            #### Windows
+            - [Windows x64 便携版](../../releases/download/${{ steps.get_tag.outputs.tag }}/animekoenhanced-windows-x64.zip)
+
+            #### macOS
+            - [macOS ARM64 (Apple Silicon)](../../releases/download/${{ steps.get_tag.outputs.tag }}/animekoenhanced-macos-aarch64.dmg)
+
+            #### Linux
+            - [Linux x64 AppImage](../../releases/download/${{ steps.get_tag.outputs.tag }}/animekoenhanced-linux-x64.AppImage)
+
+            #### Android
+            - [Android ARM64](../../releases/download/${{ steps.get_tag.outputs.tag }}/animekoenhanced-android-arm64-v8a.apk)
+            - [Android Universal](../../releases/download/${{ steps.get_tag.outputs.tag }}/animekoenhanced-android-universal.apk)
+
+            ### 更新内容 / Changelog
+
+            请查看提交历史。
+
+            ---
+
+            🤖 此版本由 GitHub Actions 自动构建
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+  build-and-upload-windows:
+    name: 'Build and Upload Windows'
+    runs-on: windows-2022
+    needs: create-release
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+        with:
+          submodules: 'recursive'
+
+      - name: 'Get Tag'
+        id: get_tag
+        shell: bash
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 'Setup local.properties'
+        continue-on-error: true
+        run: |
+          rm -f local.properties
+          echo "kotlin.native.ignoreDisabledTargets=true" >> local.properties
+
+      - name: 'Setup JBR 21'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: 'Setup Gradle'
+        uses: 'gradle/actions/setup-gradle@v3'
+
+      - name: 'Build Desktop'
+        run: './gradlew packageReleaseDistributionForCurrentOS --scan --stacktrace'
+        timeout-minutes: 90
+
+      - name: 'Package Windows Installer'
+        shell: bash
+        run: |
+          cd app/desktop/build/compose/binaries/main-release
+          if [ -d "msi" ]; then
+            mv msi/*.msi animekoenhanced-${{ steps.get_tag.outputs.tag }}-windows-x64.msi
+            echo "MSI_FILE=app/desktop/build/compose/binaries/main-release/animekoenhanced-${{ steps.get_tag.outputs.tag }}-windows-x64.msi" >> $GITHUB_ENV
+          fi
+
+      - name: 'Upload Windows MSI to Release'
+        if: env.MSI_FILE != ''
+        uses: 'softprops/action-gh-release@v1'
+        with:
+          tag_name: '${{ steps.get_tag.outputs.tag }}'
+          files: '${{ env.MSI_FILE }}'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+  build-and-upload-linux:
+    name: 'Build and Upload Linux & Android'
+    runs-on: ubuntu-24.04
+    needs: create-release
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+        with:
+          submodules: 'recursive'
+
+      - name: 'Get Tag'
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 'Free Disk Space'
+        uses: 'jlumbroso/free-disk-space@v1.3.1'
+        with:
+          android: 'false'
+          large-packages: 'false'
+
+      - name: 'Setup local.properties'
+        continue-on-error: true
+        run: |
+          rm -f local.properties
+          echo "kotlin.native.ignoreDisabledTargets=true" >> local.properties
+
+      - name: 'Setup JBR 21'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: 'Setup Gradle'
+        uses: 'gradle/actions/setup-gradle@v3'
+
+      - name: 'Build Android Release APKs'
+        run: './gradlew assembleRelease --scan --stacktrace'
+        timeout-minutes: 90
+
+      - name: 'Rename Android APKs'
+        run: |
+          cd app/android/build/outputs/apk/release
+          mv android-arm64-v8a-release.apk animekoenhanced-${{ steps.get_tag.outputs.tag }}-android-arm64-v8a.apk
+          mv android-universal-release.apk animekoenhanced-${{ steps.get_tag.outputs.tag }}-android-universal.apk
+
+      - name: 'Upload Android APKs to Release'
+        uses: 'softprops/action-gh-release@v1'
+        with:
+          tag_name: '${{ steps.get_tag.outputs.tag }}'
+          files: |
+            app/android/build/outputs/apk/release/animekoenhanced-${{ steps.get_tag.outputs.tag }}-android-arm64-v8a.apk
+            app/android/build/outputs/apk/release/animekoenhanced-${{ steps.get_tag.outputs.tag }}-android-universal.apk
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+      - name: 'Build Desktop'
+        run: './gradlew createReleaseDistributable --scan --stacktrace'
+        timeout-minutes: 90
+
+      - name: 'Build AppImage'
+        run: |
+          wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+          mkdir -p AppDir/usr
+          cp -r app/desktop/build/compose/binaries/main-release/app/Ani/* AppDir/usr
+
+          cp app/desktop/appResources/linux-x64/AppRun AppDir/AppRun
+          cp app/desktop/appResources/linux-x64/animeko.desktop AppDir/animeko.desktop
+          cp app/desktop/appResources/linux-x64/icon.png AppDir/icon.png
+
+          chmod a+x AppDir/AppRun
+          chmod a+x AppDir/usr/bin/Ani
+          chmod a+x AppDir/usr/lib/runtime/lib/jcef_helper || true
+
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir
+          mv Animeko-x86_64.AppImage animekoenhanced-${{ steps.get_tag.outputs.tag }}-linux-x64.AppImage
+
+      - name: 'Upload Linux AppImage to Release'
+        uses: 'softprops/action-gh-release@v1'
+        with:
+          tag_name: '${{ steps.get_tag.outputs.tag }}'
+          files: 'animekoenhanced-${{ steps.get_tag.outputs.tag }}-linux-x64.AppImage'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+
+  build-and-upload-macos:
+    name: 'Build and Upload macOS'
+    runs-on: macos-14
+    needs: create-release
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+        with:
+          submodules: 'recursive'
+
+      - name: 'Get Tag'
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: 'Setup local.properties'
+        continue-on-error: true
+        run: |
+          rm -f local.properties
+          echo "kotlin.native.ignoreDisabledTargets=true" >> local.properties
+
+      - name: 'Setup JBR 21'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '21'
+          distribution: 'zulu'
+
+      - name: 'Setup Gradle'
+        uses: 'gradle/actions/setup-gradle@v3'
+
+      - name: 'Build Desktop'
+        run: './gradlew packageReleaseDistributionForCurrentOS --scan --stacktrace -Pani.android.abis=arm64-v8a'
+        timeout-minutes: 90
+
+      - name: 'Package macOS DMG'
+        run: |
+          cd app/desktop/build/compose/binaries/main-release/dmg
+          mv *.dmg animekoenhanced-${{ steps.get_tag.outputs.tag }}-macos-aarch64.dmg
+
+      - name: 'Upload macOS DMG to Release'
+        uses: 'softprops/action-gh-release@v1'
+        with:
+          tag_name: '${{ steps.get_tag.outputs.tag }}'
+          files: 'app/desktop/build/compose/binaries/main-release/dmg/animekoenhanced-${{ steps.get_tag.outputs.tag }}-macos-aarch64.dmg'
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
