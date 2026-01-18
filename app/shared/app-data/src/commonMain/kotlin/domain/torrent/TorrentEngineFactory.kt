@@ -11,7 +11,9 @@ package me.him188.ani.app.domain.torrent
 
 import kotlinx.coroutines.flow.Flow
 import me.him188.ani.app.data.models.preference.AnitorrentConfig
+import me.him188.ani.app.data.models.preference.QBittorrentSettings
 import me.him188.ani.app.domain.torrent.engines.AnitorrentEngine
+import me.him188.ani.app.domain.torrent.engines.QBittorrentEngine
 import me.him188.ani.app.domain.torrent.peer.PeerFilterSettings
 import me.him188.ani.utils.io.SystemPath
 import me.him188.ani.utils.ktor.ScopedHttpClient
@@ -36,5 +38,46 @@ object LocalAnitorrentEngineFactory : TorrentEngineFactory {
         saveDir: SystemPath
     ): TorrentEngine {
         return AnitorrentEngine(config, client, peerFilterSettings, saveDir, parentCoroutineContext)
+    }
+}
+
+/**
+ * 扩展的工厂，支持创建不同类型的引擎
+ */
+interface ExtendedTorrentEngineFactory {
+    fun createAnitorrentEngine(
+        parentCoroutineContext: CoroutineContext,
+        config: Flow<AnitorrentConfig>,
+        client: ScopedHttpClient,
+        peerFilterSettings: Flow<PeerFilterSettings>,
+        saveDir: SystemPath,
+    ): TorrentEngine
+
+    fun createQBittorrentEngine(
+        parentCoroutineContext: CoroutineContext,
+        config: Flow<QBittorrentSettings>,
+        client: ScopedHttpClient,
+        peerFilterSettings: Flow<PeerFilterSettings>,
+    ): TorrentEngine
+}
+
+object DefaultExtendedTorrentEngineFactory : ExtendedTorrentEngineFactory {
+    override fun createAnitorrentEngine(
+        parentCoroutineContext: CoroutineContext,
+        config: Flow<AnitorrentConfig>,
+        client: ScopedHttpClient,
+        peerFilterSettings: Flow<PeerFilterSettings>,
+        saveDir: SystemPath
+    ): TorrentEngine {
+        return AnitorrentEngine(config, client, peerFilterSettings, saveDir, parentCoroutineContext)
+    }
+
+    override fun createQBittorrentEngine(
+        parentCoroutineContext: CoroutineContext,
+        config: Flow<QBittorrentSettings>,
+        client: ScopedHttpClient,
+        peerFilterSettings: Flow<PeerFilterSettings>
+    ): TorrentEngine {
+        return QBittorrentEngine(config, client, peerFilterSettings, parentCoroutineContext)
     }
 }

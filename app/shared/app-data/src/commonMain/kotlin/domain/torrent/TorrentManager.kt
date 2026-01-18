@@ -39,7 +39,11 @@ enum class TorrentEngineType(
     val id: String,
 ) {
     Anitorrent("anitorrent"),
-    RemoteAnitorrent("anitorrent")
+    RemoteAnitorrent("anitorrent"),
+    QBittorrent("qbittorrent"),
+    Aria2("aria2"),
+    Transmission("transmission"),
+    CommandLine("commandline"),
 }
 
 /**
