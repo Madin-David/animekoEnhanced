@@ -50,6 +50,7 @@ kotlin {
 
         api(projects.torrent.torrentApi)
         api(projects.torrent.anitorrent)
+        api(projects.torrent.qbittorrent)
 
         api(libs.datastore.core) // Data Persistence
         api(libs.datastore.preferences.core) // Preferences
