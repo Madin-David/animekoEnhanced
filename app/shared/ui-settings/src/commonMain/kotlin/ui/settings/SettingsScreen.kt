@@ -143,6 +143,7 @@ import me.him188.ani.app.ui.settings.tabs.log.LogTab
 import me.him188.ani.app.ui.settings.tabs.media.BackupSettings
 import me.him188.ani.app.ui.settings.tabs.media.CacheDirectoryGroup
 import me.him188.ani.app.ui.settings.tabs.media.MediaSelectionGroup
+import me.him188.ani.app.ui.settings.tabs.media.TorrentDownloaderGroup
 import me.him188.ani.app.ui.settings.tabs.media.TorrentEngineGroup
 import me.him188.ani.app.ui.settings.tabs.media.source.MediaSourceGroup
 import me.him188.ani.app.ui.settings.tabs.media.source.MediaSourceSubscriptionGroup
@@ -338,7 +339,10 @@ fun SettingsScreen(
                                 onStartProxyTestLoop = { vm.startProxyTesterLoop() },
                             )
 
-                            SettingsTab.BT -> TorrentEngineGroup(vm.torrentSettingsState)
+                            SettingsTab.BT -> {
+                                TorrentDownloaderGroup(vm.torrentDownloaderConfigState)
+                                TorrentEngineGroup(vm.torrentSettingsState)
+                            }
 //                            SettingsTab.CACHE -> AutoCacheGroup(vm.mediaCacheSettingsState)
                             SettingsTab.STORAGE -> CacheDirectoryGroup(vm.cacheDirectoryGroupState)
                             SettingsTab.SETTINGS_BACKUP -> BackupSettings(vm.cacheDirectoryGroupState)
