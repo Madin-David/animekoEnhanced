@@ -62,8 +62,8 @@
     <string name="settings_about_source_code">Source code</string>
     <string name="settings_about_chat_groups">Chat groups</string>
     <string name="settings_about_qq_group">QQ Group</string>
-    <string name="settings_about_icon_description">Animeko Icon</string>
-    <string name="settings_about_app_name">Animeko</string>
+    <string name="settings_about_icon_description">Animeko Enhanced Icon</string>
+    <string name="settings_about_app_name">Animeko Enhanced</string>
     <string name="settings_about_app_description">A one-stop platform for searching, following, and watching anime with bullet comments</string>
     <string name="settings_developers_main_contributors">Main contributors</string>
     <string name="settings_developers_project_initiator">Project initiator</string>

@@ -59,10 +59,10 @@ val archs = buildList {
 }
 
 android {
-    namespace = "me.him188.ani.android"
+    namespace = "me.him188.aniEnhanced.android"
     compileSdk = getIntProperty("android.compile.sdk")
     defaultConfig {
-        applicationId = "me.him188.ani"
+        applicationId = "me.him188.aniEnhanced"
         minSdk = getIntProperty("android.min.sdk")
         targetSdk = getIntProperty("android.compile.sdk")
         versionCode = getIntProperty("android.version.code")
