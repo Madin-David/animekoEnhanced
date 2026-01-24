@@ -74,7 +74,7 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             val speedTester = MediaSourceSpeedTester(httpClientProvider.get())
                             val candidateMedia = mediaSelector.filteredCandidatesMedia.first()
 
-                            logger.info { "[MediaSelectorAutoSelect] Starting speed test for ${candidateMedia.size} media sources" }
+                            logger.info("[MediaSelectorAutoSelect] Starting speed test for ${candidateMedia.size} media sources")
                             val speedTestResults = speedTester.testSources(
                                 candidateMedia,
                                 mediaSelectorSettings,
