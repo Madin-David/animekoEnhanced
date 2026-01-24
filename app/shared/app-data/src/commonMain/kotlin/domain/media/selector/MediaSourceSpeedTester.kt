@@ -123,8 +123,8 @@ class MediaSourceSpeedTester(
                 var bytesDownloaded = 0L
                 val duration = measureTime {
                     try {
-                        httpClient.use { client ->
-                            client.get(url) {
+                        httpClient.use {
+                            it.get(url) {
                                 // 只下载指定大小的片段
                                 headers.append("Range", "bytes=0-${segmentSize - 1}")
                             }.bodyAsChannel().let { channel ->

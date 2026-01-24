@@ -84,14 +84,13 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             val dynamicTiers = MediaSourceSpeedTester.calculateDynamicTiers(speedTestResults)
 
                             // 创建新的 sourceTiers, 合并动态优先级和静态优先级
-                            object : MediaSelectorSourceTiers {
-                                override fun get(mediaSourceId: String): MediaSourceTier {
-                                    // 优先使用基于速度的动态优先级
+                            MediaSelectorSourceTiers(
+                                tiers = dynamicTiers,
+                                fallback = { mediaSourceId ->
                                     // 如果没有速度测试结果, 则使用静态配置的优先级
-                                    return dynamicTiers[mediaSourceId]
-                                        ?: sourceTiers.get(mediaSourceId)
-                                }
-                            }
+                                    sourceTiers.get(mediaSourceId)
+                                },
+                            )
                         } else {
                             sourceTiers
                         }
