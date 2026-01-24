@@ -38,6 +38,7 @@ import me.him188.ani.app.data.models.preference.ThemeSettings
 import me.him188.ani.app.data.models.preference.TorrentPeerConfig
 import me.him188.ani.app.data.models.preference.UISettings
 import me.him188.ani.app.data.models.preference.UpdateSettings
+import me.him188.ani.app.data.models.preference.VideoCacheSettings
 import me.him188.ani.app.data.models.preference.VideoResolverSettings
 import me.him188.ani.app.data.models.preference.VideoScaffoldConfig
 import me.him188.ani.app.data.network.danmaku.AniBangumiSeverBaseUrls
@@ -128,6 +129,9 @@ class SettingsViewModel : AbstractSettingsViewModel(), KoinComponent {
 
     val mediaCacheSettingsState: SettingsState<MediaCacheSettings> =
         settingsRepository.mediaCacheSettings.stateInBackground(MediaCacheSettings.Default.copy(_placeholder = -1))
+
+    val videoCacheSettingsState: SettingsState<VideoCacheSettings> =
+        settingsRepository.videoCacheSettings.stateInBackground(VideoCacheSettings.Default.copy(_placeholder = -1))
 
     val torrentSettingsState: SettingsState<AnitorrentConfig> =
         settingsRepository.anitorrentConfig.stateInBackground(AnitorrentConfig.Default.copy(_placeholder = -1))

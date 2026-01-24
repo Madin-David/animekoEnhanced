@@ -144,6 +144,7 @@ import me.him188.ani.app.ui.settings.tabs.media.BackupSettings
 import me.him188.ani.app.ui.settings.tabs.media.CacheDirectoryGroup
 import me.him188.ani.app.ui.settings.tabs.media.MediaSelectionGroup
 import me.him188.ani.app.ui.settings.tabs.media.TorrentEngineGroup
+import me.him188.ani.app.ui.settings.tabs.media.VideoCacheSettingsGroup
 import me.him188.ani.app.ui.settings.tabs.media.source.MediaSourceGroup
 import me.him188.ani.app.ui.settings.tabs.media.source.MediaSourceSubscriptionGroup
 import me.him188.ani.app.ui.settings.tabs.network.ConfigureProxyGroup
@@ -340,7 +341,10 @@ fun SettingsScreen(
 
                             SettingsTab.BT -> TorrentEngineGroup(vm.torrentSettingsState)
 //                            SettingsTab.CACHE -> AutoCacheGroup(vm.mediaCacheSettingsState)
-                            SettingsTab.STORAGE -> CacheDirectoryGroup(vm.cacheDirectoryGroupState)
+                            SettingsTab.STORAGE -> {
+                                CacheDirectoryGroup(vm.cacheDirectoryGroupState)
+                                VideoCacheSettingsGroup(vm.videoCacheSettingsState)
+                            }
                             SettingsTab.SETTINGS_BACKUP -> BackupSettings(vm.cacheDirectoryGroupState)
                             SettingsTab.ABOUT -> {} // see above
                             SettingsTab.DEBUG -> {}
