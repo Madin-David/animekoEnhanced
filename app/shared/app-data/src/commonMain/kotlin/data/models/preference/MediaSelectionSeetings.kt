@@ -59,6 +59,21 @@ constructor(
      * @since 4.1
      */
     val fastSelectWebKindAllowNonPreferredDelay: Duration = 5.seconds, // 注意, 这是 'enum'. 查看 UI 代码以确定有哪些值可以选.
+    /**
+     * 启用视频源速度测试, 在播放前下载片段测试速度并按速度排序
+     * @since 5.1
+     */
+    val enableSourceSpeedTest: Boolean = true,
+    /**
+     * 视频源速度测试超时时间
+     * @since 5.1
+     */
+    val sourceSpeedTestTimeout: Duration = 3.seconds,
+    /**
+     * 视频源速度测试下载的片段大小 (字节)
+     * @since 5.1
+     */
+    val sourceSpeedTestSegmentSize: Long = 512 * 1024, // 512 KB
     @Suppress("PropertyName") @Transient val _placeholder: Int = 0,
 ) {
     companion object {

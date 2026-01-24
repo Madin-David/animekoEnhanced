@@ -18,9 +18,12 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import me.him188.ani.app.domain.foundation.HttpClientProvider
+import me.him188.ani.app.domain.foundation.get
 import me.him188.ani.app.domain.media.fetch.MediaFetchSession
 import me.him188.ani.app.domain.mediasource.GetMediaSelectorSourceTiersUseCase
 import me.him188.ani.app.domain.mediasource.GetWebMediaSourceInstanceFlowUseCase
+import me.him188.ani.app.domain.mediasource.codec.MediaSourceTier
 import me.him188.ani.app.domain.settings.GetMediaSelectorSettingsFlowUseCase
 import me.him188.ani.app.domain.usecase.GlobalKoin
 import me.him188.ani.app.domain.usecase.UseCase
@@ -43,6 +46,7 @@ class MediaSelectorAutoSelectUseCaseImpl(
     private val getMediaSelectorSettingsFlowUseCase: GetMediaSelectorSettingsFlowUseCase by inject()
     private val getWebMediaSourceInstanceFlowUseCase: GetWebMediaSourceInstanceFlowUseCase by inject()
     private val getMediaSelectorSourceTiersUseCase: GetMediaSelectorSourceTiersUseCase by inject()
+    private val httpClientProvider: HttpClientProvider by inject()
     private val logger = logger<MediaSelectorAutoSelectUseCase>()
 
     override suspend fun invoke(session: MediaFetchSession, mediaSelector: MediaSelector) {
@@ -65,6 +69,33 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             getMediaSelectorSourceTiersUseCase(), // load data in parallel
                         ) { a, b -> tupleOf(a, b) }.first()
 
+                        // 如果启用了速度测试, 先测试源速度并更新 tiers
+                        val updatedSourceTiers = if (mediaSelectorSettings.enableSourceSpeedTest) {
+                            val speedTester = MediaSourceSpeedTester(httpClientProvider.get())
+                            val candidateMedia = mediaSelector.filteredCandidatesMedia.first()
+
+                            logger.info { "[MediaSelectorAutoSelect] Starting speed test for ${candidateMedia.size} media sources" }
+                            val speedTestResults = speedTester.testSources(
+                                candidateMedia,
+                                mediaSelectorSettings,
+                            )
+
+                            // 根据速度测试结果计算动态优先级
+                            val dynamicTiers = MediaSourceSpeedTester.calculateDynamicTiers(speedTestResults)
+
+                            // 创建新的 sourceTiers, 合并动态优先级和静态优先级
+                            object : MediaSelectorSourceTiers {
+                                override fun get(mediaSourceId: String): MediaSourceTier {
+                                    // 优先使用基于速度的动态优先级
+                                    // 如果没有速度测试结果, 则使用静态配置的优先级
+                                    return dynamicTiers[mediaSourceId]
+                                        ?: sourceTiers.get(mediaSourceId)
+                                }
+                            }
+                        } else {
+                            sourceTiers
+                        }
+
                         return fastSelectSources(
                             session,
                             fastMediaSourceIdOrder,
@@ -72,7 +103,7 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             overrideUserSelection = false,
                             blacklistMediaIds = emptySet(),
                             allowNonPreferredFlow = allowNonPreferred,
-                            sourceTiers = sourceTiers,
+                            sourceTiers = updatedSourceTiers,
                         )
                     }
 
