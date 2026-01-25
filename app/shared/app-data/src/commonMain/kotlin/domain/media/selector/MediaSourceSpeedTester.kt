@@ -56,11 +56,11 @@ class MediaSourceSpeedTester(
         settings: MediaSelectorSettings,
     ): List<SpeedTestResult> = coroutineScope {
         if (!settings.enableSourceSpeedTest) {
-            logger.info("Source speed test is disabled")
+            logger.info { "Source speed test is disabled" }
             return@coroutineScope emptyList()
         }
 
-        logger.info("Starting speed test for ${mediaList.size} sources")
+        logger.info { "Starting speed test for ${mediaList.size} sources" }
 
         // 按 mediaSourceId 分组, 每个源只测试一次
         val mediaBySource = mediaList.groupBy { it.mediaSourceId }
@@ -89,13 +89,13 @@ class MediaSourceSpeedTester(
             .filter { it.success }
             .sortedByDescending { it.speedBytesPerSecond }
             .also { successfulResults ->
-                logger.info(
+                logger.info {
                     "Speed test completed: ${successfulResults.size}/${mediaBySource.size} sources tested successfully"
-                )
+                }
                 successfulResults.forEach { result ->
-                    logger.debug(
+                    logger.debug {
                         "Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms"
-                    )
+                    }
                 }
             }
     }
@@ -111,7 +111,7 @@ class MediaSourceSpeedTester(
         return try {
             withTimeout(timeout) {
                 val url = extractTestUrl(media.download) ?: run {
-                    logger.debug("Cannot extract test URL from media ${media.mediaId}")
+                    logger.debug { "Cannot extract test URL from media ${media.mediaId}" }
                     return@withTimeout SpeedTestResult(
                         mediaSourceId = media.mediaSourceId,
                         speedBytesPerSecond = 0,
@@ -137,7 +137,7 @@ class MediaSourceSpeedTester(
                             }
                         }
                     } catch (e: Exception) {
-                        logger.debug("Failed to download from ${media.mediaId}: ${e.message}")
+                        logger.debug(e) { "Failed to download from ${media.mediaId}" }
                         throw e
                     }
                 }
@@ -156,7 +156,7 @@ class MediaSourceSpeedTester(
                 )
             }
         } catch (e: TimeoutCancellationException) {
-            logger.debug("Speed test timeout for media ${media.mediaId}")
+            logger.debug(e) { "Speed test timeout for media ${media.mediaId}" }
             SpeedTestResult(
                 mediaSourceId = media.mediaSourceId,
                 speedBytesPerSecond = 0,
@@ -164,7 +164,7 @@ class MediaSourceSpeedTester(
                 success = false,
             )
         } catch (e: Exception) {
-            logger.debug("Speed test failed for media ${media.mediaId}: ${e.message}")
+            logger.debug(e) { "Speed test failed for media ${media.mediaId}" }
             SpeedTestResult(
                 mediaSourceId = media.mediaSourceId,
                 speedBytesPerSecond = 0,
