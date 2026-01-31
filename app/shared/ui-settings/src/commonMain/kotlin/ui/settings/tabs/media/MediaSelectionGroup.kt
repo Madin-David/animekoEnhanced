@@ -62,6 +62,16 @@ import me.him188.ani.app.ui.lang.settings_media_sort_tip
 import me.him188.ani.app.ui.lang.settings_media_source_bt
 import me.him188.ani.app.ui.lang.settings_media_source_no_preference
 import me.him188.ani.app.ui.lang.settings_media_source_web
+import me.him188.ani.app.ui.lang.settings_media_speed_test
+import me.him188.ani.app.ui.lang.settings_media_speed_test_description
+import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size
+import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_1mb
+import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_256kb
+import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_2mb
+import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_512kb
+import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_description
+import me.him188.ani.app.ui.lang.settings_media_speed_test_timeout
+import me.him188.ani.app.ui.lang.settings_media_speed_test_timeout_description
 import me.him188.ani.app.ui.lang.settings_media_subtitle_language
 import me.him188.ani.app.ui.lang.settings_media_wait_time_10s
 import me.him188.ani.app.ui.lang.settings_media_wait_time_15s
@@ -392,6 +402,92 @@ internal fun SettingsScope.MediaSelectionGroup(
                 title = { Text(stringResource(Lang.settings_media_auto_enable_last)) },
                 description = { Text(stringResource(Lang.settings_media_auto_enable_last_description)) },
             )
+
+            HorizontalDividerItem()
+
+            SwitchItem(
+                checked = mediaSelectorSettings.enableSourceSpeedTest,
+                onCheckedChange = {
+                    state.mediaSelectorSettingsState.update(
+                        mediaSelectorSettings.copy(enableSourceSpeedTest = it),
+                    )
+                },
+                title = { Text(stringResource(Lang.settings_media_speed_test)) },
+                description = { Text(stringResource(Lang.settings_media_speed_test_description)) },
+            )
+
+            AniAnimatedVisibility(mediaSelectorSettings.enableSourceSpeedTest) {
+                SubGroup {
+                    DropdownItem(
+                        selected = { mediaSelectorSettings.sourceSpeedTestTimeout },
+                        values = {
+                            listOf(
+                                1.seconds,
+                                2.seconds,
+                                3.seconds,
+                                5.seconds,
+                                8.seconds,
+                                10.seconds,
+                            )
+                        },
+                        itemText = { duration ->
+                            Text(
+                                when (duration) {
+                                    1.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "")
+                                    2.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "")
+                                    3.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "")
+                                    5.seconds -> stringResource(Lang.settings_media_wait_time_5s).replace("After ", "")
+                                    8.seconds -> stringResource(Lang.settings_media_wait_time_8s).replace("After ", "")
+                                    10.seconds -> stringResource(Lang.settings_media_wait_time_10s).replace("After ", "")
+                                    else -> duration.toString()
+                                },
+                            )
+                        },
+                        onSelect = {
+                            state.mediaSelectorSettingsState.update(
+                                mediaSelectorSettings.copy(sourceSpeedTestTimeout = it),
+                            )
+                        },
+                        title = { Text(stringResource(Lang.settings_media_speed_test_timeout)) },
+                        description = { Text(stringResource(Lang.settings_media_speed_test_timeout_description)) },
+                    )
+
+                    HorizontalDividerItem()
+
+                    val segmentSizeValues = remember {
+                        listOf(
+                            256L * 1024,
+                            512L * 1024,
+                            1024L * 1024,
+                            2L * 1024 * 1024,
+                        )
+                    }
+                    DropdownItem(
+                        selected = { mediaSelectorSettings.sourceSpeedTestSegmentSize },
+                        values = { segmentSizeValues },
+                        itemText = { size ->
+                            Text(
+                                when (size) {
+                                    256L * 1024 -> stringResource(Lang.settings_media_speed_test_segment_size_256kb)
+                                    512L * 1024 -> stringResource(Lang.settings_media_speed_test_segment_size_512kb)
+                                    1024L * 1024 -> stringResource(Lang.settings_media_speed_test_segment_size_1mb)
+                                    2L * 1024 * 1024 -> stringResource(Lang.settings_media_speed_test_segment_size_2mb)
+                                    else -> "${size / 1024} KB"
+                                },
+                            )
+                        },
+                        onSelect = {
+                            state.mediaSelectorSettingsState.update(
+                                mediaSelectorSettings.copy(sourceSpeedTestSegmentSize = it),
+                            )
+                        },
+                        title = { Text(stringResource(Lang.settings_media_speed_test_segment_size)) },
+                        description = { Text(stringResource(Lang.settings_media_speed_test_segment_size_description)) },
+                    )
+
+                    HorizontalDividerItem()
+                }
+            }
         }
     }
 }

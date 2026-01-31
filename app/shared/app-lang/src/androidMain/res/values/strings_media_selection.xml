@@ -53,4 +53,14 @@
     <string name="settings_media_auto_cache_partial">Current setting: Auto-cache %d episodes after current progress, </string>
     <string name="settings_media_auto_cache_space">Estimated space usage %s/anime</string>
     <string name="settings_media_sort_tip">Long press to sort, higher-ranked items are prioritized.\nFewer selected items means faster queries.</string>
+    <string name="settings_media_speed_test">Test Source Speed Before Playback</string>
+    <string name="settings_media_speed_test_description">Before playing, download small segments from each source to measure actual download speed, then prioritize faster sources. This can significantly reduce loading time</string>
+    <string name="settings_media_speed_test_timeout">Speed Test Timeout</string>
+    <string name="settings_media_speed_test_timeout_description">Maximum time to wait for each source speed test. Longer timeout gives more accurate results but may slow down playback start</string>
+    <string name="settings_media_speed_test_segment_size">Test Segment Size</string>
+    <string name="settings_media_speed_test_segment_size_description">Size of data downloaded during each speed test. Larger segments provide more accurate speed measurements but consume more bandwidth</string>
+    <string name="settings_media_speed_test_segment_size_256kb">256 KB</string>
+    <string name="settings_media_speed_test_segment_size_512kb">512 KB</string>
+    <string name="settings_media_speed_test_segment_size_1mb">1 MB</string>
+    <string name="settings_media_speed_test_segment_size_2mb">2 MB</string>
 </resources>
