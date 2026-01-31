@@ -91,7 +91,7 @@ class MediaSourceSpeedTester(
             .also { successfulResults ->
                 logger.info { "Speed test completed: ${successfulResults.size}/${mediaBySource.size} sources tested successfully" }
                 successfulResults.forEach { result ->
-                    logger.debug("Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms")
+                    logger.debug { "Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms" }
                 }
             }
     }
@@ -107,7 +107,7 @@ class MediaSourceSpeedTester(
         return try {
             withTimeout(timeout) {
                 val url = extractTestUrl(media.download) ?: run {
-                    logger.debug("Cannot extract test URL from media ${media.mediaId}")
+                    logger.debug { "Cannot extract test URL from media ${media.mediaId}" }
                     return@withTimeout SpeedTestResult(
                         mediaSourceId = media.mediaSourceId,
                         speedBytesPerSecond = 0,
@@ -160,8 +160,7 @@ class MediaSourceSpeedTester(
                 success = false,
             )
         } catch (e: Exception) {
-            val exception = e
-            logger.debug(exception) { "Speed test failed for media ${media.mediaId}" }
+            logger.debug(e) { "Speed test failed for media ${media.mediaId}" }
             SpeedTestResult(
                 mediaSourceId = media.mediaSourceId,
                 speedBytesPerSecond = 0,
