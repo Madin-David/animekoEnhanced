@@ -91,7 +91,7 @@ class MediaSourceSpeedTester(
             .also { successfulResults ->
                 logger.info("Speed test completed: ${successfulResults.size}/${mediaBySource.size} sources tested successfully")
                 successfulResults.forEach { result ->
-                    logger.debug { "Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms" }
+                    logger.debug("Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms")
                 }
             }
     }
@@ -119,8 +119,8 @@ class MediaSourceSpeedTester(
                 var bytesDownloaded = 0L
                 val duration = measureTime {
                     try {
-                        httpClient.use { client ->
-                            client.get(url) {
+                        httpClient.use {
+                            get(url) {
                                 // 只下载指定大小的片段
                                 headers.append("Range", "bytes=0-${segmentSize - 1}")
                             }.bodyAsChannel().let { channel ->
@@ -133,8 +133,7 @@ class MediaSourceSpeedTester(
                             }
                         }
                     } catch (e: Exception) {
-                        val exception = e
-                        logger.debug(exception) { "Failed to download from ${media.mediaId}" }
+                        logger.debug(e.message, e)
                         throw e
                     }
                 }
@@ -153,8 +152,7 @@ class MediaSourceSpeedTester(
                 )
             }
         } catch (e: TimeoutCancellationException) {
-            val exception = e
-            logger.debug(exception) { "Speed test timeout for media ${media.mediaId}" }
+            logger.debug(e.message, e)
             SpeedTestResult(
                 mediaSourceId = media.mediaSourceId,
                 speedBytesPerSecond = 0,
@@ -162,8 +160,7 @@ class MediaSourceSpeedTester(
                 success = false,
             )
         } catch (e: Exception) {
-            val exception = e
-            logger.debug(exception) { "Speed test failed for media ${media.mediaId}" }
+            logger.debug(e.message, e)
             SpeedTestResult(
                 mediaSourceId = media.mediaSourceId,
                 speedBytesPerSecond = 0,
