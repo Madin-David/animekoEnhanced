@@ -53,4 +53,14 @@
     <string name="settings_media_auto_cache_partial">当前设置: 自动缓存观看进度之后的 %d 话, </string>
     <string name="settings_media_auto_cache_space">预计占用空间 %s/番剧</string>
     <string name="settings_media_sort_tip">长按排序，优先选择顺序较高的项目。\n选中数量越少，查询越快。</string>
+    <string name="settings_media_speed_test">播放前测试数据源速度</string>
+    <string name="settings_media_speed_test_description">播放前从每个数据源下载小片段以测量实际下载速度，然后优先选择更快的数据源，可显著减少加载时间</string>
+    <string name="settings_media_speed_test_timeout">测速超时</string>
+    <string name="settings_media_speed_test_timeout_description">每个数据源测速的最长等待时间。超时更长则结果更准确，但可能会延迟开播</string>
+    <string name="settings_media_speed_test_segment_size">测速片段大小</string>
+    <string name="settings_media_speed_test_segment_size_description">每次测速下载的数据大小。片段更大测得更准确，但会消耗更多带宽</string>
+    <string name="settings_media_speed_test_segment_size_256kb">256 KB</string>
+    <string name="settings_media_speed_test_segment_size_512kb">512 KB</string>
+    <string name="settings_media_speed_test_segment_size_1mb">1 MB</string>
+    <string name="settings_media_speed_test_segment_size_2mb">2 MB</string>
 </resources>
