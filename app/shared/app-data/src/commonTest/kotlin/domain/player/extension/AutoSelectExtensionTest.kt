@@ -61,6 +61,7 @@ class AutoSelectExtensionTest : AbstractPlayerExtensionTest() {
         preferSeasons = true,
         autoEnableLastSelected = false,
         fastSelectWebKind = false,
+        enableSourceSpeedTest = false,
     )
 
     private val mediaSelectorSettings = MutableStateFlow(
