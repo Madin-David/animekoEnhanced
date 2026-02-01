@@ -27,7 +27,8 @@ import kotlin.time.Duration
 import kotlin.time.measureTime
 
 /**
- * 视频源速度测试器, 用于在播放前测试各个源的下载速度
+ * 视频源速度测试器, 用于在播放前测试各个源的下载速度.
+ * 通过并发测试多个媒体源的速度, 选择最优的源进行播放.
  */
 class MediaSourceSpeedTester(
     private val httpClient: ScopedHttpClient,
