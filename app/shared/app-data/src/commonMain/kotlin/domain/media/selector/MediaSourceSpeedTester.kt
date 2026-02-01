@@ -22,6 +22,8 @@ import me.him188.ani.app.domain.mediasource.codec.MediaSourceTier
 import me.him188.ani.datasources.api.Media
 import me.him188.ani.datasources.api.topic.ResourceLocation
 import me.him188.ani.utils.ktor.ScopedHttpClient
+import me.him188.ani.utils.logging.debug
+import me.him188.ani.utils.logging.info
 import me.him188.ani.utils.logging.logger
 import kotlin.time.Duration
 import kotlin.time.measureTime
