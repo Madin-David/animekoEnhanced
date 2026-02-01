@@ -133,7 +133,8 @@ class MediaSourceSpeedTester(
                             }
                         }
                     } catch (e: Exception) {
-                        logger.debug(e) { "Failed to download from ${media.mediaId}" }
+                        val exception = e
+                        logger.debug(exception) { "Failed to download from ${media.mediaId}" }
                         throw e
                     }
                 }
@@ -152,7 +153,8 @@ class MediaSourceSpeedTester(
                 )
             }
         } catch (e: TimeoutCancellationException) {
-            logger.debug(e) { "Speed test timeout for media ${media.mediaId}" }
+            val exception = e
+            logger.debug(exception) { "Speed test timeout for media ${media.mediaId}" }
             SpeedTestResult(
                 mediaSourceId = media.mediaSourceId,
                 speedBytesPerSecond = 0,
