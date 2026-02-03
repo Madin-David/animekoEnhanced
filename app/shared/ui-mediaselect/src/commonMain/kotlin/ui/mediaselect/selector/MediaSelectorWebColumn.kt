@@ -67,6 +67,17 @@ data class WebSource(
     val channels: List<WebSourceChannel>,
     val isLoading: Boolean,
     val isError: Boolean,
+    val speedTestResult: SpeedTestResult? = null,  // null = 未测试
+    val isSpeedTesting: Boolean = false,           // true = 测试中
+)
+
+/**
+ * UI 层的速度测试结果数据类
+ */
+data class SpeedTestResult(
+    val speedBytesPerSecond: Long,
+    val latencyMs: Long,
+    val success: Boolean,
 )
 
 /**
@@ -149,19 +160,28 @@ private fun WebSourceCard(
                 source.iconUrl, source.name,
                 Modifier.size(24.dp),
             )
-            Box(Modifier.padding(start = 8.dp)) {
-                Text(
-                    "五个字占位",
-                    Modifier.alpha(0f).width(IntrinsicSize.Max),
-                    softWrap = true,
-                    maxLines = 2,
-                )
-                Text(
-                    source.name,
-                    Modifier.matchParentSize(),
-                    softWrap = true,
-                    maxLines = 2,
-                    overflow = TextOverflow.Clip,
+            Column(Modifier.padding(start = 8.dp)) {
+                Box {
+                    Text(
+                        "五个字占位",
+                        Modifier.alpha(0f).width(IntrinsicSize.Max),
+                        softWrap = true,
+                        maxLines = 2,
+                    )
+                    Text(
+                        source.name,
+                        Modifier.matchParentSize(),
+                        softWrap = true,
+                        maxLines = 2,
+                        overflow = TextOverflow.Clip,
+                    )
+                }
+
+                // 速度测试显示
+                SpeedTestDisplay(
+                    speedTestResult = source.speedTestResult,
+                    isSpeedTesting = source.isSpeedTesting,
+                    modifier = Modifier.alpha(0.7f),
                 )
             }
         }
@@ -209,6 +229,54 @@ private fun WebSourceCard(
                 Icon(Icons.Rounded.Refresh, "刷新")
             }
         }
+    }
+}
+
+/**
+ * 速度测试显示组件
+ */
+@Composable
+private fun SpeedTestDisplay(
+    speedTestResult: SpeedTestResult?,
+    isSpeedTesting: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    when {
+        isSpeedTesting -> {
+            Text(
+                "测速中...",
+                modifier = modifier,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        speedTestResult?.success == true -> {
+            Text(
+                "${formatSpeed(speedTestResult.speedBytesPerSecond)} · ${speedTestResult.latencyMs}ms",
+                modifier = modifier,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        else -> {
+            Text(
+                "--",
+                modifier = modifier,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * 格式化速度显示
+ */
+private fun formatSpeed(bytesPerSecond: Long): String {
+    return when {
+        bytesPerSecond >= 1_000_000 -> "%.1f MB/s".format(bytesPerSecond / 1_000_000.0)
+        bytesPerSecond >= 1_000 -> "%.1f KB/s".format(bytesPerSecond / 1_000.0)
+        else -> "$bytesPerSecond B/s"
     }
 }
 

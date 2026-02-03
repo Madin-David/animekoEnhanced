@@ -42,10 +42,14 @@ import me.him188.ani.app.domain.media.selector.GetPreferredMediaSourceSortingUse
 import me.him188.ani.app.domain.media.selector.MaybeExcludedMedia
 import me.him188.ani.app.domain.media.selector.MediaPreferenceItem
 import me.him188.ani.app.domain.media.selector.MediaSelector
+import me.him188.ani.app.domain.foundation.HttpClientProvider
 import me.him188.ani.app.domain.media.selector.MediaSelectorContext
+import me.him188.ani.app.domain.media.selector.MediaSourceSpeedTester
 import me.him188.ani.app.domain.media.selector.isPerfectMatch
+import me.him188.ani.app.domain.settings.GetMediaSelectorSettingsFlowUseCase
 import me.him188.ani.app.domain.usecase.GlobalKoin
 import me.him188.ani.app.ui.foundation.rememberBackgroundScope
+import me.him188.ani.app.ui.mediaselect.selector.SpeedTestResult
 import me.him188.ani.app.ui.mediaselect.selector.WebSource
 import me.him188.ani.app.ui.mediaselect.selector.WebSourceChannel
 import me.him188.ani.datasources.api.Media
@@ -143,6 +147,43 @@ class MediaSelectorState(
     private val backgroundScope: CoroutineScope,
     getPreferredMediaSourceSortingUseCase: GetPreferredMediaSourceSortingUseCase,
 ) {
+    // 速度测试结果存储: mediaSourceId -> SpeedTestResult
+    private val speedTestResults = MutableStateFlow<Map<String, SpeedTestResult>>(emptyMap())
+
+    // 正在测速的源: Set<mediaSourceId>
+    private val speedTestingInProgress = MutableStateFlow<Set<String>>(emptySet())
+
+    // 已测试过的源: Set<mediaSourceId>
+    private val testedSources = MutableStateFlow<Set<String>>(emptySet())
+
+    // 速度测试器实例 (懒加载)
+    private val speedTester by lazy {
+        MediaSourceSpeedTester(
+            httpClient = GlobalKoin.get<HttpClientProvider>().get()
+        )
+    }
+
+    // 获取设置的 UseCase
+    private val getMediaSelectorSettingsFlowUseCase: GetMediaSelectorSettingsFlowUseCase by lazy {
+        GlobalKoin.get()
+    }
+
+    init {
+        // 自动触发速度测试
+        backgroundScope.launch {
+            mediaSelector.filteredCandidates.collect { candidates ->
+                val medias = candidates.mapNotNull { it.result }
+                if (medias.isNotEmpty()) {
+                    // 只测试未测试过的源
+                    val newMedias = medias.filter { it.mediaSourceId !in testedSources.value }
+                    if (newMedias.isNotEmpty()) {
+                        triggerSpeedTests(newMedias)
+                    }
+                }
+            }
+        }
+    }
+
     @Immutable
     data class Presentation(
         val filteredCandidates: List<MaybeExcludedMedia>,
@@ -255,9 +296,11 @@ class MediaSelectorState(
         return combine(
             sortedResultsFlow.distinctUntilChanged(),
             mediaSelector.filteredCandidates,
-        ) { sources, mediaList ->
-            tupleOf(sources, mediaList)
-        }.flatMapLatest { (sources, allMediaList) ->
+            speedTestResults,
+            speedTestingInProgress,
+        ) { sources, mediaList, testResults, testingInProgress ->
+            tupleOf(sources, mediaList, testResults, testingInProgress)
+        }.flatMapLatest { (sources, allMediaList, testResults, testingInProgress) ->
             val showWebSources = sources.map { source ->
 
                 // 属于这个数据源的 medias
@@ -273,7 +316,13 @@ class MediaSelectorState(
                     }
                     .mapNotNull { it.result }
 
-                createWebSourceFlow(source, myMediaList, delayToOvercomeCacheIssue = isFirstCollect).also {
+                createWebSourceFlow(
+                    source,
+                    myMediaList,
+                    delayToOvercomeCacheIssue = isFirstCollect,
+                    testResults = testResults,
+                    testingInProgress = testingInProgress,
+                ).also {
                     isFirstCollect = false
                 }
             }
@@ -293,6 +342,8 @@ class MediaSelectorState(
         source: MediaSourceFetchResult,
         myMediaList: Sequence<Media>,
         delayToOvercomeCacheIssue: Boolean,
+        testResults: Map<String, SpeedTestResult>,
+        testingInProgress: Set<String>,
     ) = source.state.map { state ->
         val channels = myMediaList.map { media ->
             WebSourceChannel(media.properties.alliance, original = media)
@@ -323,8 +374,65 @@ class MediaSelectorState(
                     channels = channels,
                     isLoading = state.isWorking,
                     isError = state.isFailedOrAbandoned,
+                    speedTestResult = testResults[source.mediaSourceId],
+                    isSpeedTesting = source.mediaSourceId in testingInProgress,
                 )
             }
+        }
+    }
+
+    /**
+     * 触发速度测试
+     * @param sources 要测试的媒体源列表
+     */
+    fun triggerSpeedTests(sources: List<Media>) {
+        backgroundScope.launch {
+            val settings = getMediaSelectorSettingsFlowUseCase().first()
+            if (!settings.enableSourceSpeedTest) {
+                return@launch
+            }
+
+            // 按 mediaSourceId 分组
+            val sourceIds = sources.map { it.mediaSourceId }.distinct()
+
+            // 标记为测试中
+            speedTestingInProgress.value = sourceIds.toSet()
+
+            try {
+                // 执行速度测试
+                val results = speedTester.testSources(sources, settings)
+
+                // 更新结果
+                speedTestResults.value = speedTestResults.value + results.associate { result ->
+                    result.mediaSourceId to SpeedTestResult(
+                        speedBytesPerSecond = result.speedBytesPerSecond,
+                        latencyMs = result.latencyMs,
+                        success = result.success,
+                    )
+                }
+
+                // 记录已测试的源
+                testedSources.value = testedSources.value + sourceIds
+            } finally {
+                // 清除测试中状态
+                speedTestingInProgress.value = emptySet()
+            }
+        }
+    }
+
+    /**
+     * 清除速度测试结果并重新测试
+     * @param sourceId 要重新测试的源 ID，如果为 null 则清除所有结果
+     */
+    fun retriggerSpeedTests(sourceId: String? = null) {
+        if (sourceId != null) {
+            // 清除特定源的结果
+            speedTestResults.value = speedTestResults.value - sourceId
+            testedSources.value = testedSources.value - sourceId
+        } else {
+            // 清除所有结果
+            speedTestResults.value = emptyMap()
+            testedSources.value = emptySet()
         }
     }
 
