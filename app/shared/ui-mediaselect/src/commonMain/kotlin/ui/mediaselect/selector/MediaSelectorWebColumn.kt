@@ -274,8 +274,14 @@ private fun SpeedTestDisplay(
  */
 private fun formatSpeed(bytesPerSecond: Long): String {
     return when {
-        bytesPerSecond >= 1_000_000 -> "%.1f MB/s".format(bytesPerSecond / 1_000_000.0)
-        bytesPerSecond >= 1_000 -> "%.1f KB/s".format(bytesPerSecond / 1_000.0)
+        bytesPerSecond >= 1_000_000 -> {
+            val mbps = bytesPerSecond / 1_000_000.0
+            "${(mbps * 10).toLong() / 10.0} MB/s"
+        }
+        bytesPerSecond >= 1_000 -> {
+            val kbps = bytesPerSecond / 1_000.0
+            "${(kbps * 10).toLong() / 10.0} KB/s"
+        }
         else -> "$bytesPerSecond B/s"
     }
 }
