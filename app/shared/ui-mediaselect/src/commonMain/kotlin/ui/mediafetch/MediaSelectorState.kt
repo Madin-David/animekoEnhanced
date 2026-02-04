@@ -160,7 +160,9 @@ class MediaSelectorState(
     // 速度测试器实例 (懒加载)
     private val speedTester by lazy {
         MediaSourceSpeedTester(
-            httpClient = GlobalKoin.get<HttpClientProvider>().get()
+            httpClient = GlobalKoin.get<HttpClientProvider>().get(
+                userAgent = me.him188.ani.utils.ktor.ScopedHttpClientUserAgent.ANI
+            )
         )
     }
 
