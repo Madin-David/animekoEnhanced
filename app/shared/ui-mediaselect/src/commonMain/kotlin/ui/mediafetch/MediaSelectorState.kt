@@ -385,8 +385,9 @@ class MediaSelectorState(
     /**
      * 触发速度测试
      * @param sources 要测试的媒体源列表
+     * @param autoSelectOnComplete 测试完成后是否自动选择最快的源
      */
-    fun triggerSpeedTests(sources: List<Media>) {
+    fun triggerSpeedTests(sources: List<Media>, autoSelectOnComplete: Boolean = true) {
         backgroundScope.launch {
             val settings = getMediaSelectorSettingsFlowUseCase().first()
             if (!settings.enableSourceSpeedTest) {
@@ -404,16 +405,36 @@ class MediaSelectorState(
                 val results = speedTester.testSources(sources, settings)
 
                 // 更新结果
-                speedTestResults.value = speedTestResults.value + results.associate { result ->
+                val newResults = results.associate { result ->
                     result.mediaSourceId to SpeedTestResult(
                         speedBytesPerSecond = result.speedBytesPerSecond,
                         latencyMs = result.latencyMs,
                         success = result.success,
                     )
                 }
+                speedTestResults.value = speedTestResults.value + newResults
 
                 // 记录已测试的源
                 testedSources.value = testedSources.value + sourceIds
+
+                // 自动选择最快的源（如果启用且用户尚未手动选择）
+                if (autoSelectOnComplete && mediaSelector.selected.value == null) {
+                    val fastestResult = results
+                        .filter { it.success }
+                        .maxByOrNull { it.speedBytesPerSecond }
+
+                    if (fastestResult != null) {
+                        // 找到最快的源对应的 Media
+                        val fastestMedia = sources
+                            .filter { it.mediaSourceId == fastestResult.mediaSourceId }
+                            .firstOrNull()
+
+                        if (fastestMedia != null) {
+                            // 自动选择该源
+                            mediaSelector.select(fastestMedia)
+                        }
+                    }
+                }
             } finally {
                 // 清除测试中状态
                 speedTestingInProgress.value = emptySet()
