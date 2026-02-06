@@ -418,21 +418,31 @@ class MediaSelectorState(
                 testedSources.value = testedSources.value + sourceIds
 
                 // 自动选择最快的源（如果启用且用户尚未手动选择）
-                if (autoSelectOnComplete && mediaSelector.selected.value == null) {
-                    val fastestResult = results
-                        .filter { it.success }
-                        .maxByOrNull { it.speedBytesPerSecond }
+                if (autoSelectOnComplete) {
+                    val currentSelected = mediaSelector.selected.value
+                    if (currentSelected == null) {
+                        val fastestResult = results
+                            .filter { it.success }
+                            .maxByOrNull { it.speedBytesPerSecond }
 
-                    if (fastestResult != null) {
-                        // 找到最快的源对应的 Media
-                        val fastestMedia = sources
-                            .filter { it.mediaSourceId == fastestResult.mediaSourceId }
-                            .firstOrNull()
+                        if (fastestResult != null) {
+                            // 找到最快的源对应的 Media
+                            val fastestMedia = sources
+                                .filter { it.mediaSourceId == fastestResult.mediaSourceId }
+                                .firstOrNull()
 
-                        if (fastestMedia != null) {
-                            // 自动选择该源
-                            mediaSelector.select(fastestMedia)
+                            if (fastestMedia != null) {
+                                // 自动选择该源
+                                val selected = mediaSelector.select(fastestMedia)
+                                println("[SpeedTest] Auto-selected fastest source: ${fastestMedia.mediaSourceId}, success=$selected")
+                            } else {
+                                println("[SpeedTest] Failed to find Media for fastest source: ${fastestResult.mediaSourceId}")
+                            }
+                        } else {
+                            println("[SpeedTest] No successful speed test results")
                         }
+                    } else {
+                        println("[SpeedTest] Skipping auto-select, already selected: ${currentSelected.mediaSourceId}")
                     }
                 }
             } finally {
