@@ -12,6 +12,7 @@ package me.him188.ani.app.ui.subject.details.state
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
@@ -28,6 +29,7 @@ import me.him188.ani.app.ui.rating.EditableRatingState
 import me.him188.ani.app.ui.subject.AiringLabelState
 import me.him188.ani.app.ui.subject.SubjectProgressState
 import me.him188.ani.app.ui.subject.collection.components.EditableSubjectCollectionTypeState
+import me.him188.ani.app.ui.subject.episode.list.EpisodeListItem
 import me.him188.ani.app.ui.subject.episode.list.EpisodeListUiState
 import me.him188.ani.datasources.api.topic.UnifiedCollectionType
 
@@ -53,6 +55,8 @@ class SubjectDetailsState(
     val editableRatingState: EditableRatingState,
     val subjectProgressState: SubjectProgressState,
     val subjectCommentState: CommentState,
+    val selectedEpisodeForComments: MutableState<EpisodeListItem?>,
+    val createEpisodeCommentState: (episodeId: Int) -> CommentState,
     val presentation: StateFlow<SubjectDetailsPresentation>, // default to placeholder
 ) {
     private val selfCollectionTypeOrNull by selfCollectionTypeState

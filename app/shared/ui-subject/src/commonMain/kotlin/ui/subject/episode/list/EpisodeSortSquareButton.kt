@@ -9,14 +9,19 @@
 
 package me.him188.ani.app.ui.subject.episode.list
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Badge
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.him188.ani.app.ui.foundation.FilledTonalCombinedClickButton
@@ -27,6 +32,7 @@ internal fun EpisodeSortSquareButton(
     item: EpisodeListItem,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onCommentClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     colors: EpisodeListColors = EpisodeListDefaults.colors(),
 ) {
@@ -35,20 +41,39 @@ internal fun EpisodeSortSquareButton(
         !item.isBroadcast -> colors.notPublishedColor // 未开播
         else -> colors.canWatchColor // 还没看
     }
-    FilledTonalCombinedClickButton(
-        onClick = onClick,
-        onLongClick = onLongClick,
-        modifier = modifier
-            .combinedClickable(onLongClick = onLongClick, onClick = onClick)
-            .heightIn(min = 48.dp)
-            .widthIn(min = 48.dp),
-        shape = MaterialTheme.shapes.small,
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
-        colors = ButtonDefaults.elevatedButtonColors(
-            containerColor = containerColor,
-            contentColor = MaterialTheme.colorScheme.onPrimary,
-        ),
-    ) {
-        Text(item.sort.toString(), style = MaterialTheme.typography.bodyMedium)
+    Box(modifier = modifier) {
+        FilledTonalCombinedClickButton(
+            onClick = onClick,
+            onLongClick = onLongClick,
+            modifier = Modifier
+                .combinedClickable(onLongClick = onLongClick, onClick = onClick)
+                .heightIn(min = 48.dp)
+                .widthIn(min = 48.dp),
+            shape = MaterialTheme.shapes.small,
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+            colors = ButtonDefaults.elevatedButtonColors(
+                containerColor = containerColor,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+        ) {
+            Text(item.sort.toString(), style = MaterialTheme.typography.bodyMedium)
+        }
+
+        if (item.commentCount > 0) {
+            Badge(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 4.dp, y = (-4).dp)
+                    .let {
+                        if (onCommentClick != null) {
+                            it.clickable(onClick = onCommentClick)
+                        } else {
+                            it
+                        }
+                    },
+            ) {
+                Text(if (item.commentCount > 99) "99+" else item.commentCount.toString())
+            }
+        }
     }
 }

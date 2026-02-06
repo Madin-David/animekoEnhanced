@@ -22,6 +22,7 @@ fun EpisodeListFlowRow(
     episodes: List<EpisodeListItem>,
     onClick: (episode: EpisodeListItem) -> Unit,
     onLongClick: (episode: EpisodeListItem) -> Unit,
+    onCommentClick: ((episode: EpisodeListItem) -> Unit)? = null,
     modifier: Modifier = Modifier,
     theme: EpisodeListProgressTheme = EpisodeListProgressTheme.Default,
 ) {
@@ -35,6 +36,7 @@ fun EpisodeListFlowRow(
                 episode,
                 onClick = { onClick(episode) },
                 onLongClick = { onLongClick(episode) },
+                onCommentClick = onCommentClick?.let { { it(episode) } },
                 colors = EpisodeListDefaults.colors(theme),
             )
         }

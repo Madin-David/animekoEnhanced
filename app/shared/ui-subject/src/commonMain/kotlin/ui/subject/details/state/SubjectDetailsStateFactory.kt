@@ -60,6 +60,7 @@ import me.him188.ani.app.ui.subject.SubjectProgressState
 import me.him188.ani.app.ui.subject.collection.components.EditableSubjectCollectionTypeState
 import me.him188.ani.app.ui.subject.collection.progress.SubjectProgressStateFactory
 import me.him188.ani.app.ui.subject.details.updateRating
+import me.him188.ani.app.ui.subject.episode.list.EpisodeListItem
 import me.him188.ani.app.ui.subject.episode.list.EpisodeListUiState
 import me.him188.ani.datasources.api.PackedDate
 import me.him188.ani.datasources.api.topic.UnifiedCollectionType
@@ -255,6 +256,8 @@ class DefaultSubjectDetailsStateFactory : SubjectDetailsStateFactory, KoinCompon
             backgroundScope = this,
         )
 
+        val selectedEpisodeForComments = mutableStateOf<EpisodeListItem?>(null)
+
 //        val relatedPersonsFlow = bangumiRelatedPeopleService.relatedPersonsFlow(subjectId)
 //            .onEach {
 //                withContext(Dispatchers.Main) { totalStaffCountState.value = it.size }
@@ -338,6 +341,17 @@ class DefaultSubjectDetailsStateFactory : SubjectDetailsStateFactory, KoinCompon
             editableRatingState = editableRatingState,
             subjectProgressState = subjectProgressState,
             subjectCommentState = subjectCommentState,
+            selectedEpisodeForComments = selectedEpisodeForComments,
+            createEpisodeCommentState = { episodeId ->
+                CommentState(
+                    list = bangumiCommentRepository.subjectEpisodeCommentsPager(episodeId)
+                        .map { page -> page.map { it.parseToUIComment() } }
+                        .cachedIn(this),
+                    countState = stateOf(null),
+                    onSubmitCommentReaction = { _, _ -> },
+                    backgroundScope = this,
+                )
+            },
             presentation = combine(minuteTicker, subjectCollectionFlow) { _, collection ->
                 val now = Clock.System.now()
                 SubjectDetailsPresentation(

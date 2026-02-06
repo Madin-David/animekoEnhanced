@@ -51,6 +51,7 @@ fun EpisodeListDialog(
     onCacheClick: () -> Unit,
     onEpisodeClick: (episode: EpisodeListItem) -> Unit,
     onCollectionUpdate: (episode: EpisodeListItem) -> Unit,
+    onViewComments: (episode: EpisodeListItem) -> Unit = {},
     onSubjectDetailsClick: (() -> Unit)? = null,
     properties: DialogProperties = DialogProperties(),
 ) {
@@ -80,6 +81,7 @@ fun EpisodeListDialog(
                             state.mainEpisodes,
                             onEpisodeClick,
                             onCollectionUpdate,
+                            onCommentClick = onViewComments,
                         )
 
                         if (state.otherEpisodes.isNotEmpty()) {
@@ -89,6 +91,7 @@ fun EpisodeListDialog(
                                 state.otherEpisodes,
                                 onEpisodeClick,
                                 onCollectionUpdate,
+                                onCommentClick = onViewComments,
                             )
                         }
 
@@ -211,6 +214,7 @@ private fun PreviewEpisodeListFlowRowImpl(
         episodes = episodes,
         onClick = {},
         onLongClick = {},
+        onCommentClick = {},
         theme = theme,
     )
 }

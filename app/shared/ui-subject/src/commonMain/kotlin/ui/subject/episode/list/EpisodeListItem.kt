@@ -29,6 +29,7 @@ data class EpisodeListItem(
     val nameCn: String,
     val collectionType: UnifiedCollectionType,
 //    val cacheStatus: EpisodeCacheStatus?,
+    val commentCount: Int = 0,
     /**
      * 是否已经开播了
      */
@@ -54,6 +55,7 @@ data class EpisodeListItem(
                 nameCn = collection.episodeInfo.nameCn,
                 collectionType = collection.collectionType,
 //                cacheStatus = cacheStatus,
+                commentCount = collection.episodeInfo.comment,
 //                airTime = collection.episodeInfo.airDate.toLocalDateOrNull()?,
                 isBroadcast = isBroadcast,
             )
@@ -71,6 +73,7 @@ fun createTestEpisodeListItem(
     nameCn: String = "测试剧集 $episodeId",
     collectionType: UnifiedCollectionType = UnifiedCollectionType.entries.random(random),
 //    cacheStatus: EpisodeCacheStatus? = EpisodeCacheStatus.randomOrNull(random),
+    commentCount: Int = random.nextInt(0, 200),
     isBroadcast: Boolean = random.nextBoolean(),
 ): EpisodeListItem {
     return EpisodeListItem(
@@ -81,6 +84,7 @@ fun createTestEpisodeListItem(
         nameCn,
         collectionType,
 //        cacheStatus,
+        commentCount,
         isBroadcast,
     )
 }

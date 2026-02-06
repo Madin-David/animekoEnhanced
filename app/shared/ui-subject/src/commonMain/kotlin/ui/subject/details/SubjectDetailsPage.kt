@@ -134,6 +134,7 @@ import me.him188.ani.app.ui.subject.details.components.SubjectDetailsDefaults
 import me.him188.ani.app.ui.subject.details.components.SubjectDetailsDefaults.MaximumContentWidth
 import me.him188.ani.app.ui.subject.details.components.SubjectDetailsHeader
 import me.him188.ani.app.ui.subject.details.state.SubjectDetailsState
+import me.him188.ani.app.ui.subject.episode.comments.EpisodeCommentsDialog
 import me.him188.ani.app.ui.subject.episode.list.EpisodeListDialog
 import me.him188.ani.app.ui.user.SelfInfoUiState
 import me.him188.ani.datasources.api.PackedDate
@@ -277,6 +278,21 @@ private fun SubjectDetailsPage(
     val themeSettings = LocalThemeSettings.current
     var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     MaterialThemeFromImage(bitmap) {
+        val selectedEpisodeForComments = state.selectedEpisodeForComments.value
+
+        if (selectedEpisodeForComments != null) {
+            EpisodeCommentsDialog(
+                episodeTitle = selectedEpisodeForComments.sort.toString(),
+                state = remember(selectedEpisodeForComments.episodeId) {
+                    state.createEpisodeCommentState(selectedEpisodeForComments.episodeId)
+                },
+                onDismissRequest = { state.selectedEpisodeForComments.value = null },
+                onClickUrl = { url ->
+                    RichTextDefaults.checkSanityAndOpen(url, browserNavigator, toaster)
+                },
+            )
+        }
+
         if (showSelectEpisode) {
             EpisodeListDialog(
                 presentation.episodeListUiState,
@@ -291,6 +307,9 @@ private fun SubjectDetailsPage(
                             it.collectionType.toggleCollected(),
                         ),
                     )
+                },
+                onViewComments = {
+                    state.selectedEpisodeForComments.value = it
                 },
             )
         }
