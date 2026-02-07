@@ -75,27 +75,39 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             val candidateMedia = mediaSelector.filteredCandidatesMedia.first()
 
                             logger.info { "[MediaSelectorAutoSelect] Starting speed test for ${candidateMedia.size} media sources" }
+                            println("[SpeedTest] AutoSelect: Testing ${candidateMedia.size} media sources")
+                            candidateMedia.forEach { println("[SpeedTest]   - ${it.mediaSourceId}: ${it.properties.alliance}") }
+
                             val speedTestResults = speedTester.testSources(
                                 candidateMedia,
                                 mediaSelectorSettings,
                             )
 
+                            println("[SpeedTest] AutoSelect: Got ${speedTestResults.size} results:")
+                            speedTestResults.forEach { result ->
+                                println("[SpeedTest]   - ${result.mediaSourceId}: success=${result.success}, speed=${result.speedBytesPerSecond} B/s, latency=${result.latencyMs}ms")
+                            }
+
                             // 根据速度测试结果计算动态优先级
                             val dynamicTiers = MediaSourceSpeedTester.calculateDynamicTiers(speedTestResults)
+                            println("[SpeedTest] AutoSelect: Dynamic tiers: $dynamicTiers")
 
                             // 创建新的 sourceTiers, 合并动态优先级和静态优先级
                             MediaSelectorSourceTiers(
                                 tiers = dynamicTiers,
                                 fallback = { mediaSourceId ->
                                     // 如果没有速度测试结果, 则使用静态配置的优先级
-                                    sourceTiers.get(mediaSourceId)
+                                    val fallbackTier = sourceTiers.get(mediaSourceId)
+                                    println("[SpeedTest] AutoSelect: Fallback tier for $mediaSourceId = $fallbackTier")
+                                    fallbackTier
                                 },
                             )
                         } else {
+                            println("[SpeedTest] AutoSelect: Speed test disabled")
                             sourceTiers
                         }
 
-                        return fastSelectSources(
+                        val selectResult = fastSelectSources(
                             session,
                             fastMediaSourceIdOrder,
                             preferKind = preferKindFlow,
@@ -104,6 +116,8 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             allowNonPreferredFlow = allowNonPreferred,
                             sourceTiers = updatedSourceTiers,
                         )
+                        println("[SpeedTest] AutoSelect: fastSelectSources returned: $selectResult")
+                        return selectResult
                     }
 
                     var result = doSelect(

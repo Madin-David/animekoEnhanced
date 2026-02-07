@@ -34,7 +34,9 @@ class AutoSelectExtension(
         backgroundTaskScope.launch("AutoSelect") {
             context.sessionFlow.flatMapLatest { it.fetchSelectFlow }.collectLatest { fetchSelect ->
                 if (fetchSelect == null) return@collectLatest
+                println("[SpeedTest] AutoSelectExtension: Starting auto-select for session")
                 mediaSelectorAutoSelectUseCase(fetchSelect.mediaFetchSession, fetchSelect.mediaSelector)
+                println("[SpeedTest] AutoSelectExtension: Auto-select completed")
             }
         }
     }

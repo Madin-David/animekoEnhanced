@@ -222,11 +222,13 @@ class MediaSelectorAutoSelect(
 
                 // 尝试立即选择 tier 低的数据源 (具体阈值取决于 fastSelectTierThreshold)
                 // See MediaSourceTier
+                println("[SpeedTest] fastSelectSources: Checking tiers (threshold=$instantSelectTierThreshold)")
                 states
                     .mapIndexedNotNull { i, state ->
                         if (state is MediaSourceFetchState.Succeed) {
                             val source = fastSources[i]
                             val tier = source.getTier()
+                            println("[SpeedTest] fastSelectSources: Source ${source.mediaSourceId} has tier $tier, threshold=$instantSelectTierThreshold, lowTier=${tier <= instantSelectTierThreshold}")
                             if (tier <= instantSelectTierThreshold) {
                                 source
                             } else {
@@ -237,6 +239,7 @@ class MediaSelectorAutoSelect(
                         }
                     }
                     .let { lowTierSources ->
+                        println("[SpeedTest] fastSelectSources: lowTierSources count = ${lowTierSources.size}, sources = ${lowTierSources.map { it.mediaSourceId }}")
                         // 该数据源查询成功了, 立即选择它
                         val selected: Media? = mediaSelector.trySelectFromMediaSources(
                             lowTierSources.map { it.mediaSourceId },
@@ -244,6 +247,7 @@ class MediaSelectorAutoSelect(
                             blacklistMediaIds = blacklistMediaIds,
                             allowNonPreferred = allowNonPreferred,
                         )
+                        println("[SpeedTest] fastSelectSources: trySelectFromMediaSources returned: $selected")
                         logger.debug { "done trySelectFromMediaSources 2" }
 
                         if (selected != null) {
