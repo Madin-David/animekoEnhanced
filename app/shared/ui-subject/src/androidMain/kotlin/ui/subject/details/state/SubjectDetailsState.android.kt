@@ -9,6 +9,7 @@
 
 package me.him188.ani.app.ui.subject.details.state
 
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.him188.ani.app.data.models.subject.TestSelfRatingInfo
@@ -58,6 +59,8 @@ fun createTestSubjectDetailsState(
         ),
         subjectProgressState = createTestSubjectProgressState(),
         subjectCommentState = createTestCommentState(backgroundScope),
+        selectedEpisodeForComments = mutableStateOf(null),
+        createEpisodeCommentState = { createTestCommentState(backgroundScope) },
         presentation = MutableStateFlow(SubjectDetailsPresentation.Placeholder),
     )
 }
