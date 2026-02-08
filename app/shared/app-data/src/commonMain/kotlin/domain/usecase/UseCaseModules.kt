@@ -45,6 +45,7 @@ import me.him188.ani.app.domain.media.selector.MediaSelectorAutoSelectUseCase
 import me.him188.ani.app.domain.media.selector.MediaSelectorAutoSelectUseCaseImpl
 import me.him188.ani.app.domain.media.selector.MediaSelectorEventSavePreferenceUseCase
 import me.him188.ani.app.domain.media.selector.MediaSelectorEventSavePreferenceUseCaseImpl
+import me.him188.ani.app.domain.media.selector.MediaSourceSpeedTestResultManager
 import me.him188.ani.app.domain.mediasource.GetMediaSelectorSourceTiersUseCase
 import me.him188.ani.app.domain.mediasource.GetMediaSelectorSourceTiersUseCaseImpl
 import me.him188.ani.app.domain.mediasource.GetWebMediaSourceInstanceFlowUseCase
@@ -68,6 +69,7 @@ fun KoinApplication.useCaseModules() = module {
     single<GetDanmakuRegexFilterListFlowUseCase> { GetDanmakuRegexFilterListFlowUseCaseImpl() }
     single<MediaSelectorAutoSelectUseCase> { MediaSelectorAutoSelectUseCaseImpl() }
     single<MediaSelectorEventSavePreferenceUseCase> { MediaSelectorEventSavePreferenceUseCaseImpl }
+    single<MediaSourceSpeedTestResultManager> { MediaSourceSpeedTestResultManager() }
     single<GetWebMediaSourceInstanceFlowUseCase> { GetWebMediaSourceInstanceFlowUseCaseImpl() }
     single<GetSubjectEpisodeInfoBundleFlowUseCase> { GetSubjectEpisodeInfoBundleFlowUseCaseImpl() }
     single<CreateMediaFetchSelectBundleFlowUseCase> { CreateMediaFetchSelectBundleFlowUseCaseImpl() }

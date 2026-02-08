@@ -54,6 +54,7 @@ class SwitchMediaOnPlayerErrorExtension(
     private val getWebMediaSourceInstanceFlowUseCase: GetWebMediaSourceInstanceFlowUseCase by koin.inject()
     private val getMediaSelectorSettingsFlowUseCase: GetMediaSelectorSettingsFlowUseCase by koin.inject()
     private val getSourceTiersUseCase: GetMediaSelectorSourceTiersUseCase by koin.inject()
+    private val speedTestResultManager: me.him188.ani.app.domain.media.selector.MediaSourceSpeedTestResultManager by koin.inject()
 
 
     override fun onStart(
@@ -86,6 +87,7 @@ class SwitchMediaOnPlayerErrorExtension(
             getWebSources = { getWebMediaSourceInstanceFlowUseCase().first() },
             getPreferKind = { getMediaSelectorSettingsFlowUseCase().first().preferKind },
             getSourceTiers = { getSourceTiersUseCase().first() },
+            speedTestResultManager = speedTestResultManager,
         )
 
         // 播放失败时自动切换下一个 media.
@@ -148,6 +150,7 @@ internal class PlayerLoadErrorHandler(
     private val getWebSources: suspend () -> List<String>,
     private val getPreferKind: suspend () -> MediaSourceKind?,
     private val getSourceTiers: suspend () -> MediaSelectorSourceTiers,
+    private val speedTestResultManager: me.him188.ani.app.domain.media.selector.MediaSourceSpeedTestResultManager,
 ) {
     private var blacklistedMediaIds = persistentHashSetOf<String>()
 
@@ -184,11 +187,31 @@ internal class PlayerLoadErrorHandler(
             getSourceTiers.asFlow(),
         ) { a, b, c -> tupleOf(a, b, c) }.first()
 
+        // 尝试使用速度测试结果来优化源选择
+        val updatedSourceTiers = if (speedTestResultManager.speedTestResults.value.isNotEmpty()) {
+            // 如果有速度测试结果，使用动态 tiers
+            val dynamicTiers = speedTestResultManager.calculateDynamicTiers()
+            logger.info { "Using speed test results for re-selection: ${speedTestResultManager.speedTestResults.value.size} sources tested" }
+
+            // 合并动态 tiers 和静态 tiers
+            MediaSelectorSourceTiers(
+                tiers = dynamicTiers.tiers,
+                fallback = { mediaSourceId ->
+                    // 如果没有速度测试结果，使用静态配置的优先级
+                    sourceTiers.get(mediaSourceId)
+                },
+            )
+        } else {
+            // 没有速度测试结果，使用静态 tiers
+            logger.info { "No speed test results available, using static tiers for re-selection" }
+            sourceTiers
+        }
+
         val result = mediaSelector.autoSelect.fastSelectSources(
             session,
             fastMediaSourceIdOrder,
             preferKind = flowOf(preferKind),
-            sourceTiers = sourceTiers,
+            sourceTiers = updatedSourceTiers,
             overrideUserSelection = true, // Note: 覆盖用户选择
             blacklistMediaIds = blacklistedMediaIds,
             allowNonPreferredFlow = flowOf(true), // 偏好的如果全都播放错误了, 允许播放非偏好的

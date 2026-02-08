@@ -47,6 +47,7 @@ class MediaSelectorAutoSelectUseCaseImpl(
     private val getWebMediaSourceInstanceFlowUseCase: GetWebMediaSourceInstanceFlowUseCase by inject()
     private val getMediaSelectorSourceTiersUseCase: GetMediaSelectorSourceTiersUseCase by inject()
     private val httpClientProvider: HttpClientProvider by inject()
+    private val speedTestResultManager: MediaSourceSpeedTestResultManager by inject()
     private val logger = logger<MediaSelectorAutoSelectUseCase>()
 
     override suspend fun invoke(session: MediaFetchSession, mediaSelector: MediaSelector) {
@@ -87,6 +88,9 @@ class MediaSelectorAutoSelectUseCaseImpl(
                             speedTestResults.forEach { result ->
                                 println("[SpeedTest]   - ${result.mediaSourceId}: success=${result.success}, speed=${result.speedBytesPerSecond} B/s, latency=${result.latencyMs}ms")
                             }
+
+                            // 存储速度测试结果到管理器，供其他组件使用（如 SwitchMediaOnPlayerErrorExtension）
+                            speedTestResultManager.updateResults(speedTestResults)
 
                             // 根据速度测试结果计算动态优先级
                             val dynamicTiers = MediaSourceSpeedTester.calculateDynamicTiers(speedTestResults)
