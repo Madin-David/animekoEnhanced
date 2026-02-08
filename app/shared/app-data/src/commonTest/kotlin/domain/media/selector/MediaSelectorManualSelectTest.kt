@@ -45,7 +45,8 @@ class MediaSelectorManualSelectTest {
         val handler = PlayerLoadErrorHandler(
             getWebSources = { listOf("source-a", "source-b") },
             getPreferKind = { null },
-            getSourceTiers = { MediaSelectorSourceTiers(emptyMap()) }
+            getSourceTiers = { MediaSelectorSourceTiers(emptyMap()) },
+            speedTestResultManager = MediaSourceSpeedTestResultManager(),
         )
 
         coroutineScope {
