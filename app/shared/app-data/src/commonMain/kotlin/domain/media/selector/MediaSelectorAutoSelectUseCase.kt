@@ -122,19 +122,24 @@ class MediaSelectorAutoSelectUseCaseImpl(
 
                     var result = doSelect(
                         allowNonPreferred = flow {
-                            when (val delay = mediaSelectorSettings.fastSelectWebKindAllowNonPreferredDelay) {
-                                Duration.ZERO -> {
-                                    emit(true)
-                                }
+                            // 当启用速度测试时，立即允许选择非偏好源（即最快的源）
+                            if (mediaSelectorSettings.enableSourceSpeedTest) {
+                                emit(true)
+                            } else {
+                                when (val delay = mediaSelectorSettings.fastSelectWebKindAllowNonPreferredDelay) {
+                                    Duration.ZERO -> {
+                                        emit(true)
+                                    }
 
-                                Duration.INFINITE -> {
-                                    emit(false)
-                                }
+                                    Duration.INFINITE -> {
+                                        emit(false)
+                                    }
 
-                                else -> {
-                                    emit(false)
-                                    delay(delay)
-                                    emit(true)
+                                    else -> {
+                                        emit(false)
+                                        delay(delay)
+                                        emit(true)
+                                    }
                                 }
                             }
                         },
