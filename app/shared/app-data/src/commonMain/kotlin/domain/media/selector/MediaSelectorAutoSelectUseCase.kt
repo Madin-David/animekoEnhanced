@@ -163,13 +163,23 @@ class MediaSelectorAutoSelectUseCaseImpl(
                     }
                 }
                 launch {
+                    // 当启用速度测试时，等待速度测试完成后再选择缓存的源
+                    val settings = getMediaSelectorSettingsFlowUseCase().first()
+                    if (settings.enableSourceSpeedTest) {
+                        fastSelectJob.join()
+                    }
                     selectCached(session).also {
                         logger.info { "[MediaSelectorAutoSelect] selectCached result: $it" }
                     }
                 }
 
                 launch {
-                    if (getMediaSelectorSettingsFlowUseCase().first().autoEnableLastSelected) {
+                    // 当启用速度测试时，等待速度测试完成后再自动启用上次选择的源
+                    val settings = getMediaSelectorSettingsFlowUseCase().first()
+                    if (settings.enableSourceSpeedTest) {
+                        fastSelectJob.join()
+                    }
+                    if (settings.autoEnableLastSelected) {
                         autoEnableLastSelected(session).also {
                             logger.info { "[MediaSelectorAutoSelect] autoEnableLastSelected result: $it" }
                         }
