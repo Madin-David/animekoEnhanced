@@ -203,6 +203,7 @@ class MediaSelectorAutoSelect(
                                 overrideUserSelection = overrideUserSelection,
                                 blacklistMediaIds = blacklistMediaIds,
                                 allowNonPreferred = allowNonPreferred,
+                                sourceTiers = sourceTiers,
                             )
                             logger.debug { "done trySelectFromMediaSources 1" }
 
@@ -246,6 +247,7 @@ class MediaSelectorAutoSelect(
                             overrideUserSelection = overrideUserSelection,
                             blacklistMediaIds = blacklistMediaIds,
                             allowNonPreferred = allowNonPreferred,
+                            sourceTiers = sourceTiers,
                         )
                         println("[SpeedTest] fastSelectSources: trySelectFromMediaSources returned: $selected")
                         logger.debug { "done trySelectFromMediaSources 2" }

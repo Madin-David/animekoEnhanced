@@ -218,6 +218,7 @@ interface MediaSelector {
         overrideUserSelection: Boolean = false,
         blacklistMediaIds: Set<String> = emptySet(),
         allowNonPreferred: Boolean = false,
+        sourceTiers: MediaSelectorSourceTiers? = null,
     ): Media?
 
     /**
@@ -678,7 +679,8 @@ class DefaultMediaSelector(
         mediaSourceOrder: List<String>,
         overrideUserSelection: Boolean,
         blacklistMediaIds: Set<String>,
-        allowNonPreferred: Boolean
+        allowNonPreferred: Boolean,
+        sourceTiers: MediaSelectorSourceTiers?,
     ): Media? {
         if (mediaSourceOrder.isEmpty()) return null
 
@@ -687,7 +689,14 @@ class DefaultMediaSelector(
 
             fun bake(candidates: List<MaybeExcludedMedia.Included>): List<MaybeExcludedMedia.Included> {
                 return candidates.filter { it.result.mediaSourceId in mediaSourceOrder && it.result.mediaId !in blacklistMediaIds }
-                    .sortedBy { mediaSourceOrder.indexOf(it.result.mediaSourceId) }
+                    .sortedWith(
+                        compareBy(
+                            // 首先按 tier 排序（如果提供了 sourceTiers）
+                            { sourceTiers?.get(it.result.mediaSourceId)?.value ?: UInt.MAX_VALUE },
+                            // 然后按 mediaSourceOrder 排序
+                            { mediaSourceOrder.indexOf(it.result.mediaSourceId) }
+                        )
+                    )
             }
 
             findUsingPreferenceFromCandidates(
