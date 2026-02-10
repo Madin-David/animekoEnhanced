@@ -433,8 +433,8 @@ internal fun SettingsScope.MediaSelectionGroup(
                         itemText = { duration ->
                             Text(
                                 when (duration) {
-                                    1.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "")
-                                    2.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "")
+                                    1.seconds -> stringResource(Lang.settings_media_wait_time_1s).replace("After ", "")
+                                    2.seconds -> stringResource(Lang.settings_media_wait_time_2s).replace("After ", "")
                                     3.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "")
                                     5.seconds -> stringResource(Lang.settings_media_wait_time_5s).replace("After ", "")
                                     8.seconds -> stringResource(Lang.settings_media_wait_time_8s).replace("After ", "")

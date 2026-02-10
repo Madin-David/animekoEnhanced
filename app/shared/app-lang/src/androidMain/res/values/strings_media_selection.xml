@@ -30,6 +30,8 @@
     <string name="settings_media_fast_select_web">Quick Select Online Sources</string>
     <string name="settings_media_fast_select_web_description">Sort by data source, and select immediately when higher-ranked sources complete their query, without waiting for other sources. Can significantly reduce waiting time</string>
     <string name="settings_media_wait_time_none">Don\'t wait</string>
+    <string name="settings_media_wait_time_1s">After 1 second</string>
+    <string name="settings_media_wait_time_2s">After 2 seconds</string>
     <string name="settings_media_wait_time_3s">After 3 seconds</string>
     <string name="settings_media_wait_time_5s">After 5 seconds</string>
     <string name="settings_media_wait_time_8s">After 8 seconds</string>
