@@ -74,6 +74,11 @@ constructor(
      * @since 5.1
      */
     val sourceSpeedTestSegmentSize: Long = 512 * 1024, // 512 KB
+    /**
+     * 在番剧详情页预先测速，基于历史观看集数或第一集
+     * @since 5.1
+     */
+    val preTestSpeedOnSubjectDetails: Boolean = true,
     @Suppress("PropertyName") @Transient val _placeholder: Int = 0,
 ) {
     companion object {

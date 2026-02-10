@@ -65,4 +65,6 @@
     <string name="settings_media_speed_test_segment_size_512kb">512 KB</string>
     <string name="settings_media_speed_test_segment_size_1mb">1 MB</string>
     <string name="settings_media_speed_test_segment_size_2mb">2 MB</string>
+    <string name="settings_media_pre_test_on_details">在番劇詳情頁預先測速</string>
+    <string name="settings_media_pre_test_on_details_description">查看番劇詳情頁時就開始測速，基於歷史觀看集數或第一集。可顯著減少開播時的加載時間</string>
 </resources>

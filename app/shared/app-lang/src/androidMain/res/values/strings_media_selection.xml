@@ -65,4 +65,6 @@
     <string name="settings_media_speed_test_segment_size_512kb">512 KB</string>
     <string name="settings_media_speed_test_segment_size_1mb">1 MB</string>
     <string name="settings_media_speed_test_segment_size_2mb">2 MB</string>
+    <string name="settings_media_pre_test_on_details">Pre-test Speed on Subject Details Page</string>
+    <string name="settings_media_pre_test_on_details_description">Start speed testing when viewing anime details page, based on viewing history or first episode. This can significantly reduce loading time when starting playback</string>
 </resources>

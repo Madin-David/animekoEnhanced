@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.him188.ani.app.data.models.subject.RelatedCharacterInfo
 import me.him188.ani.app.data.models.subject.SelfRatingInfo
@@ -50,6 +51,7 @@ import me.him188.ani.app.data.repository.episode.EpisodeProgressRepository
 import me.him188.ani.app.data.repository.subject.SetSubjectCollectionTypeOrDeleteUseCase
 import me.him188.ani.app.data.repository.subject.SubjectCollectionRepository
 import me.him188.ani.app.data.repository.subject.SubjectRelationsRepository
+import me.him188.ani.app.domain.media.selector.PreTestMediaSourceSpeedUseCase
 import me.him188.ani.app.ui.comment.CommentMapperContext.parseToUIComment
 import me.him188.ani.app.ui.comment.CommentState
 import me.him188.ani.app.ui.foundation.produceState
@@ -94,6 +96,7 @@ class DefaultSubjectDetailsStateFactory : SubjectDetailsStateFactory, KoinCompon
     private val subjectRelationsRepository: SubjectRelationsRepository by inject()
     private val bangumiCommentRepository: BangumiCommentRepository by inject()
     private val setSubjectCollectionTypeOrDeleteUseCase: SetSubjectCollectionTypeOrDeleteUseCase by inject()
+    private val preTestMediaSourceSpeedUseCase: PreTestMediaSourceSpeedUseCase by inject()
 
     override fun create(
         subjectInfoFlow: Flow<SubjectInfo>
@@ -350,6 +353,16 @@ class DefaultSubjectDetailsStateFactory : SubjectDetailsStateFactory, KoinCompon
                 SubjectDetailsPresentation.Placeholder.copy(subjectId = subjectId),
             ),
         )
+
+        // 在后台触发预测速
+        launch {
+            try {
+                preTestMediaSourceSpeedUseCase(subjectId)
+            } catch (e: Exception) {
+                // 忽略预测速失败，不影响主流程
+            }
+        }
+
         return state
     }
 }

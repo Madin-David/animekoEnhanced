@@ -486,6 +486,19 @@ internal fun SettingsScope.MediaSelectionGroup(
                     )
 
                     HorizontalDividerItem()
+
+                    SwitchItem(
+                        checked = { mediaSelectorSettings.preTestSpeedOnSubjectDetails },
+                        onCheckedChange = {
+                            state.mediaSelectorSettingsState.update(
+                                mediaSelectorSettings.copy(preTestSpeedOnSubjectDetails = it),
+                            )
+                        },
+                        title = { Text(stringResource(Lang.settings_media_pre_test_on_details)) },
+                        description = { Text(stringResource(Lang.settings_media_pre_test_on_details_description)) },
+                    )
+
+                    HorizontalDividerItem()
                 }
             }
         }
