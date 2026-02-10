@@ -148,16 +148,28 @@ class MediaSelectorState(
     private val backgroundScope: CoroutineScope,
     getPreferredMediaSourceSortingUseCase: GetPreferredMediaSourceSortingUseCase,
 ) {
-    // 速度测试结果存储: mediaSourceId -> SpeedTestResult
-    private val speedTestResults = MutableStateFlow<Map<String, SpeedTestResult>>(emptyMap())
+    // 从 Domain 层的 MediaSourceSpeedTestResultManager 读取速度测试结果
+    private val speedTestResultManager: me.him188.ani.app.domain.media.selector.MediaSourceSpeedTestResultManager by lazy {
+        GlobalKoin.get()
+    }
+
+    // 将 Domain 层的结果转换为 UI 层的数据类型
+    private val speedTestResults: Flow<Map<String, SpeedTestResult>> =
+        speedTestResultManager.speedTestResults.map { domainResults ->
+            domainResults.mapValues { (_, result) ->
+                SpeedTestResult(
+                    speedBytesPerSecond = result.speedBytesPerSecond,
+                    latencyMs = result.latencyMs,
+                    success = result.success,
+                )
+            }
+        }
 
     // 正在测速的源: Set<mediaSourceId>
+    // 注意：这个状态仍然由 UI 层管理，用于手动刷新时的 UI 反馈
     private val speedTestingInProgress = MutableStateFlow<Set<String>>(emptySet())
 
-    // 已测试过的源: Set<mediaSourceId>
-    private val testedSources = MutableStateFlow<Set<String>>(emptySet())
-
-    // 速度测试器实例 (懒加载)
+    // 速度测试器实例 (懒加载) - 仅用于手动刷新
     private val speedTester by lazy {
         MediaSourceSpeedTester(
             httpClient = GlobalKoin.get<HttpClientProvider>().get(emptySet())
@@ -167,22 +179,6 @@ class MediaSelectorState(
     // 获取设置的 UseCase
     private val getMediaSelectorSettingsFlowUseCase: GetMediaSelectorSettingsFlowUseCase by lazy {
         GlobalKoin.get()
-    }
-
-    init {
-        // 自动触发速度测试
-        backgroundScope.launch {
-            mediaSelector.filteredCandidates.collect { candidates ->
-                val medias = candidates.mapNotNull { it.result }
-                if (medias.isNotEmpty()) {
-                    // 只测试未测试过的源
-                    val newMedias = medias.filter { it.mediaSourceId !in testedSources.value }
-                    if (newMedias.isNotEmpty()) {
-                        triggerSpeedTests(newMedias)
-                    }
-                }
-            }
-        }
     }
 
     @Immutable
@@ -383,11 +379,14 @@ class MediaSelectorState(
     }
 
     /**
-     * 触发速度测试
+     * 手动触发速度测试（用于刷新按钮等场景）
+     *
+     * 注意：自动选择逻辑由 Domain 层的 MediaSelectorAutoSelectUseCase 负责，
+     * UI 层只负责展示速度测试结果。
+     *
      * @param sources 要测试的媒体源列表
-     * @param autoSelectOnComplete 测试完成后是否自动选择最快的源
      */
-    fun triggerSpeedTests(sources: List<Media>, autoSelectOnComplete: Boolean = true) {
+    fun triggerSpeedTests(sources: List<Media>) {
         backgroundScope.launch {
             val settings = getMediaSelectorSettingsFlowUseCase().first()
             if (!settings.enableSourceSpeedTest) {
@@ -397,54 +396,15 @@ class MediaSelectorState(
             // 按 mediaSourceId 分组
             val sourceIds = sources.map { it.mediaSourceId }.distinct()
 
-            // 标记为测试中
+            // 标记为测试中（用于 UI 反馈）
             speedTestingInProgress.value = sourceIds.toSet()
 
             try {
                 // 执行速度测试
                 val results = speedTester.testSources(sources, settings)
 
-                // 更新结果
-                val newResults = results.associate { result ->
-                    result.mediaSourceId to SpeedTestResult(
-                        speedBytesPerSecond = result.speedBytesPerSecond,
-                        latencyMs = result.latencyMs,
-                        success = result.success,
-                    )
-                }
-                speedTestResults.value = speedTestResults.value + newResults
-
-                // 记录已测试的源
-                testedSources.value = testedSources.value + sourceIds
-
-                // 自动选择最快的源（如果启用且用户尚未手动选择）
-                if (autoSelectOnComplete) {
-                    val currentSelected = mediaSelector.selected.value
-                    if (currentSelected == null) {
-                        val fastestResult = results
-                            .filter { it.success }
-                            .maxByOrNull { it.speedBytesPerSecond }
-
-                        if (fastestResult != null) {
-                            // 找到最快的源对应的 Media
-                            val fastestMedia = sources
-                                .filter { it.mediaSourceId == fastestResult.mediaSourceId }
-                                .firstOrNull()
-
-                            if (fastestMedia != null) {
-                                // 自动选择该源
-                                val selected = mediaSelector.select(fastestMedia)
-                                println("[SpeedTest] Auto-selected fastest source: ${fastestMedia.mediaSourceId}, success=$selected")
-                            } else {
-                                println("[SpeedTest] Failed to find Media for fastest source: ${fastestResult.mediaSourceId}")
-                            }
-                        } else {
-                            println("[SpeedTest] No successful speed test results")
-                        }
-                    } else {
-                        println("[SpeedTest] Skipping auto-select, already selected: ${currentSelected.mediaSourceId}")
-                    }
-                }
+                // 将结果同步到 Domain 层的 Manager
+                speedTestResultManager.updateResults(results)
             } finally {
                 // 清除测试中状态
                 speedTestingInProgress.value = emptySet()
@@ -453,18 +413,16 @@ class MediaSelectorState(
     }
 
     /**
-     * 清除速度测试结果并重新测试
+     * 清除速度测试结果并重新测试（用于手动刷新）
      * @param sourceId 要重新测试的源 ID，如果为 null 则清除所有结果
      */
     fun retriggerSpeedTests(sourceId: String? = null) {
         if (sourceId != null) {
             // 清除特定源的结果
-            speedTestResults.value = speedTestResults.value - sourceId
-            testedSources.value = testedSources.value - sourceId
+            speedTestResultManager.clearSource(sourceId)
         } else {
             // 清除所有结果
-            speedTestResults.value = emptyMap()
-            testedSources.value = emptySet()
+            speedTestResultManager.clearAll()
         }
     }
 
