@@ -12,12 +12,14 @@ package me.him188.ani.app.domain.media.selector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import me.him188.ani.app.data.models.preference.MediaSelectorSettings
+import me.him188.ani.app.data.models.episode.EpisodeInfo
 import me.him188.ani.app.data.repository.episode.EpisodeCollectionRepository
-import me.him188.ani.app.domain.media.fetch.MediaFetchSession
-import me.him188.ani.app.domain.media.fetch.MediaSourceMediaFetcher
+import me.him188.ani.app.domain.media.fetch.MediaFetcher
+import me.him188.ani.app.domain.media.fetch.awaitCompletedResults
+import me.him188.ani.app.domain.settings.GetMediaSelectorSettingsFlowUseCase
 import me.him188.ani.app.domain.usecase.UseCase
-import me.him188.ani.datasources.api.topic.EpisodeCollectionType
+import me.him188.ani.datasources.api.source.MediaFetchRequest
+import me.him188.ani.datasources.api.topic.UnifiedCollectionType
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -33,7 +35,7 @@ interface PreTestMediaSourceSpeedUseCase : UseCase {
 
 class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinComponent {
     private val episodeCollectionRepository: EpisodeCollectionRepository by inject()
-    private val mediaFetcher: MediaSourceMediaFetcher by inject()
+    private val mediaFetcher: MediaFetcher by inject()
     private val speedTester: MediaSourceSpeedTester by inject()
     private val speedTestResultManager: MediaSourceSpeedTestResultManager by inject()
     private val getMediaSelectorSettingsFlowUseCase: GetMediaSelectorSettingsFlowUseCase by inject()
@@ -55,29 +57,36 @@ class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinC
 
         // 找到最后一个已观看的剧集
         val lastWatchedEpisode = episodeCollections
-            .filter { it.collectionType == EpisodeCollectionType.DONE }
-            .maxByOrNull { it.episode.sort }
+            .filter { it.collectionType == UnifiedCollectionType.DONE }
+            .maxByOrNull { it.episodeInfo.sort }
 
         // 确定要测速的剧集：最后观看的下一集，或第一集
-        val targetEpisode = if (lastWatchedEpisode != null) {
+        val targetEpisode: EpisodeInfo = if (lastWatchedEpisode != null) {
             // 找到下一集
             episodeCollections
-                .filter { it.episode.sort > lastWatchedEpisode.episode.sort }
-                .minByOrNull { it.episode.sort }
-                ?: episodeCollections.first() // 如果没有下一集，使用第一集
+                .filter { it.episodeInfo.sort > lastWatchedEpisode.episodeInfo.sort }
+                .minByOrNull { it.episodeInfo.sort }
+                ?.episodeInfo
+                ?: episodeCollections.first().episodeInfo // 如果没有下一集，使用第一集
         } else {
             // 没有观看历史，使用第一集
-            episodeCollections.first()
+            episodeCollections.first().episodeInfo
         }
 
-        // 创建媒体获取会话
-        val session = MediaFetchSession(
+        // 创建媒体获取请求
+        val request = MediaFetchRequest.create(
             subjectId = subjectId,
-            episodeId = targetEpisode.episode.id,
+            episodeId = targetEpisode.episodeId,
         )
 
-        // 获取媒体源列表
-        val mediaList = mediaFetcher.awaitCompletedAndSelectCached(session, null)
+        // 创建媒体获取会话并获取结果
+        val session = mediaFetcher.newSession(request)
+        val mediaList = try {
+            session.awaitCompletedResults()
+        } catch (e: Exception) {
+            // 获取失败，忽略
+            return@withContext
+        }
 
         if (mediaList.isEmpty()) {
             return@withContext
