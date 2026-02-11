@@ -11,11 +11,14 @@ package me.him188.ani.app.domain.media.selector
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import me.him188.ani.app.data.models.episode.EpisodeInfo
 import me.him188.ani.app.data.repository.episode.EpisodeCollectionRepository
-import me.him188.ani.app.domain.media.fetch.MediaFetcher
+import me.him188.ani.app.data.repository.subject.SubjectCollectionRepository
+import me.him188.ani.app.domain.media.fetch.MediaSourceManager
 import me.him188.ani.app.domain.media.fetch.awaitCompletedResults
+import me.him188.ani.app.domain.media.fetch.createFetchFetchSessionFlow
 import me.him188.ani.app.domain.settings.GetMediaSelectorSettingsFlowUseCase
 import me.him188.ani.app.domain.usecase.UseCase
 import me.him188.ani.datasources.api.source.MediaFetchRequest
@@ -35,7 +38,8 @@ interface PreTestMediaSourceSpeedUseCase : UseCase {
 
 class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinComponent {
     private val episodeCollectionRepository: EpisodeCollectionRepository by inject()
-    private val mediaFetcher: MediaFetcher by inject()
+    private val subjectCollectionRepository: SubjectCollectionRepository by inject()
+    private val mediaSourceManager: MediaSourceManager by inject()
     private val speedTester: MediaSourceSpeedTester by inject()
     private val speedTestResultManager: MediaSourceSpeedTestResultManager by inject()
     private val getMediaSelectorSettingsFlowUseCase: GetMediaSelectorSettingsFlowUseCase by inject()
@@ -73,14 +77,28 @@ class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinC
             episodeCollections.first().episodeInfo
         }
 
+        // 获取番剧信息
+        val subjectInfo = try {
+            subjectCollectionRepository.subjectCollectionFlow(subjectId).first().subjectInfo
+        } catch (e: Exception) {
+            // 获取失败，忽略
+            return@withContext
+        }
+
         // 创建媒体获取请求
         val request = MediaFetchRequest.create(
-            subjectId = subjectId,
-            episodeId = targetEpisode.episodeId,
+            subject = subjectInfo,
+            episode = targetEpisode,
         )
 
         // 创建媒体获取会话并获取结果
-        val session = mediaFetcher.newSession(request)
+        val session = try {
+            mediaSourceManager.createFetchFetchSessionFlow(flowOf(request)).first()
+        } catch (e: Exception) {
+            // 创建会话失败，忽略
+            return@withContext
+        }
+
         val mediaList = try {
             session.awaitCompletedResults()
         } catch (e: Exception) {
@@ -93,7 +111,10 @@ class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinC
         }
 
         // 执行速度测试
-        val speedTestResults = speedTester.testSources(mediaList, settings)
+        val speedTestResults = speedTester.testSources(
+            mediaList = mediaList,
+            settings = settings,
+        )
 
         // 存储结果到管理器
         speedTestResultManager.updateResults(speedTestResults)
