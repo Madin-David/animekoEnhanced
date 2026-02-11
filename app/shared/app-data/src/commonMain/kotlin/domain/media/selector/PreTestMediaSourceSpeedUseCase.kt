@@ -20,6 +20,7 @@ import me.him188.ani.app.data.repository.episode.EpisodeCollectionRepository
 import me.him188.ani.app.data.repository.subject.SubjectCollectionRepository
 import me.him188.ani.app.domain.media.fetch.MediaSourceManager
 import me.him188.ani.app.domain.media.fetch.awaitCompletedResults
+import me.him188.ani.app.domain.media.fetch.create
 import me.him188.ani.app.domain.media.fetch.createFetchFetchSessionFlow
 import me.him188.ani.app.domain.settings.GetMediaSelectorSettingsFlowUseCase
 import me.him188.ani.app.domain.usecase.UseCase

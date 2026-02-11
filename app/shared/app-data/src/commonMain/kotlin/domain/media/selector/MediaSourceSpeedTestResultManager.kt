@@ -13,15 +13,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import me.him188.ani.app.domain.mediasource.codec.MediaSourceTier
-import kotlin.time.Duration.Companion.hours
+import me.him188.ani.utils.platform.currentTimeMillis
 
 /**
  * 管理媒体源速度测试结果的单例管理器
@@ -38,7 +36,7 @@ class MediaSourceSpeedTestResultManager {
      */
     private data class TimestampedResult(
         val result: MediaSourceSpeedTester.SpeedTestResult,
-        val timestamp: Instant,
+        val timestampMs: Long,
     )
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -54,26 +52,19 @@ class MediaSourceSpeedTestResultManager {
             .map { timestampedMap ->
                 timestampedMap.mapValues { it.value.result }
             }
-            .stateIn(scope, kotlinx.coroutines.flow.SharingStarted.Eagerly, emptyMap())
+            .stateIn(scope, SharingStarted.Eagerly, emptyMap())
     }
 
     companion object {
-        /**
-         * 最大缓存数量（LRU 策略）
-         */
         private const val MAX_CACHE_SIZE = 50
-
-        /**
-         * 结果过期时间（1 小时）
-         */
-        private val EXPIRATION_TIME = 1.hours
+        private const val EXPIRATION_TIME_MS = 60 * 60 * 1000L // 1 hour
     }
 
     /**
      * 更新速度测试结果（线程安全，带 LRU 和过期清理）
      */
     fun updateResults(results: List<MediaSourceSpeedTester.SpeedTestResult>) {
-        val now = Clock.System.now()
+        val now = currentTimeMillis()
         val newResults = results.associate {
             it.mediaSourceId to TimestampedResult(it, now)
         }
@@ -81,7 +72,7 @@ class MediaSourceSpeedTestResultManager {
         _speedTestResults.update { current ->
             // 1. 移除过期的结果
             val nonExpired = current.filterValues {
-                now - it.timestamp < EXPIRATION_TIME
+                now - it.timestampMs < EXPIRATION_TIME_MS
             }
 
             // 2. 合并新结果
@@ -90,7 +81,7 @@ class MediaSourceSpeedTestResultManager {
             // 3. 如果超过最大缓存数量，移除最旧的结果（LRU）
             if (merged.size > MAX_CACHE_SIZE) {
                 merged.entries
-                    .sortedByDescending { it.value.timestamp }
+                    .sortedByDescending { it.value.timestampMs }
                     .take(MAX_CACHE_SIZE)
                     .associate { it.key to it.value }
             } else {
@@ -117,9 +108,9 @@ class MediaSourceSpeedTestResultManager {
      * 清除过期的结果
      */
     fun clearExpired() {
-        val now = Clock.System.now()
+        val now = currentTimeMillis()
         _speedTestResults.update { current ->
-            current.filterValues { now - it.timestamp < EXPIRATION_TIME }
+            current.filterValues { now - it.timestampMs < EXPIRATION_TIME_MS }
         }
     }
 
