@@ -10,6 +10,7 @@
 package me.him188.ani.app.domain.media.selector
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
@@ -51,6 +52,13 @@ class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinC
             return@withContext
         }
 
+        // 检查是否已有测速结果（去重）
+        val existingResults = speedTestResultManager.speedTestResults.first()
+        if (existingResults.isNotEmpty()) {
+            // 已有测速结果，跳过
+            return@withContext
+        }
+
         // 获取所有剧集的收藏信息
         val episodeCollections = episodeCollectionRepository.subjectEpisodeCollectionInfosFlow(subjectId)
             .first()
@@ -63,6 +71,13 @@ class PreTestMediaSourceSpeedUseCaseImpl : PreTestMediaSourceSpeedUseCase, KoinC
         val lastWatchedEpisode = episodeCollections
             .filter { it.collectionType == UnifiedCollectionType.DONE }
             .maxByOrNull { it.episodeInfo.sort }
+
+        // 智能延迟策略：如果用户从未观看过此番剧，延迟一段时间再测速
+        if (lastWatchedEpisode == null) {
+            // 用户未观看过，延迟后再测速
+            delay(settings.preTestSpeedDelayForNewSubject)
+        }
+        // 如果用户已观看过，立即开始测速
 
         // 确定要测速的剧集：最后观看的下一集，或第一集
         val targetEpisode: EpisodeInfo = if (lastWatchedEpisode != null) {

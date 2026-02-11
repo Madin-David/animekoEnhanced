@@ -79,6 +79,11 @@ constructor(
      * @since 5.1
      */
     val preTestSpeedOnSubjectDetails: Boolean = true,
+    /**
+     * 对于未观看过的番剧，延迟多久后开始预测速（避免浪费流量在仅浏览的番剧上）
+     * @since 5.1
+     */
+    val preTestSpeedDelayForNewSubject: Duration = 3.seconds,
     @Suppress("PropertyName") @Transient val _placeholder: Int = 0,
 ) {
     companion object {

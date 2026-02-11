@@ -17,6 +17,7 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -354,8 +355,8 @@ class DefaultSubjectDetailsStateFactory : SubjectDetailsStateFactory, KoinCompon
             ),
         )
 
-        // 在后台触发预测速
-        launch {
+        // 在后台触发预测速，使用 GlobalScope 确保任务不会因页面关闭而中断
+        GlobalScope.launch(Dispatchers.Default) {
             try {
                 preTestMediaSourceSpeedUseCase(subjectId)
             } catch (e: Exception) {

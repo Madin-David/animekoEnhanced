@@ -499,6 +499,44 @@ internal fun SettingsScope.MediaSelectionGroup(
                     )
 
                     HorizontalDividerItem()
+
+                    DropdownItem(
+                        selected = { mediaSelectorSettings.preTestSpeedDelayForNewSubject },
+                        values = {
+                            listOf(
+                                0.seconds,
+                                1.seconds,
+                                2.seconds,
+                                3.seconds,
+                                5.seconds,
+                                8.seconds,
+                                10.seconds,
+                            )
+                        },
+                        itemText = { duration ->
+                            Text(
+                                when (duration) {
+                                    0.seconds -> stringResource(Lang.settings_media_wait_time_none).replace("Don't wait", "Immediately").replace("不等待", "立即")
+                                    1.seconds -> stringResource(Lang.settings_media_wait_time_1s).replace("After ", "").replace("等待 ", "")
+                                    2.seconds -> stringResource(Lang.settings_media_wait_time_2s).replace("After ", "").replace("等待 ", "")
+                                    3.seconds -> stringResource(Lang.settings_media_wait_time_3s).replace("After ", "").replace("等待 ", "")
+                                    5.seconds -> stringResource(Lang.settings_media_wait_time_5s).replace("After ", "").replace("等待 ", "")
+                                    8.seconds -> stringResource(Lang.settings_media_wait_time_8s).replace("After ", "").replace("等待 ", "")
+                                    10.seconds -> stringResource(Lang.settings_media_wait_time_10s).replace("After ", "").replace("等待 ", "")
+                                    else -> duration.toString()
+                                },
+                            )
+                        },
+                        onSelect = {
+                            state.mediaSelectorSettingsState.update(
+                                mediaSelectorSettings.copy(preTestSpeedDelayForNewSubject = it),
+                            )
+                        },
+                        title = { Text(stringResource(Lang.settings_media_pre_test_delay_for_new)) },
+                        description = { Text(stringResource(Lang.settings_media_pre_test_delay_for_new_description)) },
+                    )
+
+                    HorizontalDividerItem()
                 }
             }
         }

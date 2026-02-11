@@ -67,4 +67,6 @@
     <string name="settings_media_speed_test_segment_size_2mb">2 MB</string>
     <string name="settings_media_pre_test_on_details">在番剧详情页预先测速</string>
     <string name="settings_media_pre_test_on_details_description">查看番剧详情页时就开始测速，基于历史观看集数或第一集。可显著减少开播时的加载时间</string>
+    <string name="settings_media_pre_test_delay_for_new">新番剧预测速延迟</string>
+    <string name="settings_media_pre_test_delay_for_new_description">对于未观看过的番剧，延迟一段时间后再开始测速，避免在仅浏览的番剧上浪费流量</string>
 </resources>

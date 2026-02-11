@@ -67,4 +67,6 @@
     <string name="settings_media_speed_test_segment_size_2mb">2 MB</string>
     <string name="settings_media_pre_test_on_details">Pre-test Speed on Subject Details Page</string>
     <string name="settings_media_pre_test_on_details_description">Start speed testing when viewing anime details page, based on viewing history or first episode. This can significantly reduce loading time when starting playback</string>
+    <string name="settings_media_pre_test_delay_for_new">Pre-test Delay for New Subjects</string>
+    <string name="settings_media_pre_test_delay_for_new_description">For subjects you haven\'t watched before, delay speed testing to avoid wasting bandwidth on subjects you\'re just browsing</string>
 </resources>
