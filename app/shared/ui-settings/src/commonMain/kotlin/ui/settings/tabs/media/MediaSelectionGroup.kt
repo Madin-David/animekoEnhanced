@@ -72,9 +72,15 @@ import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_512kb
 import me.him188.ani.app.ui.lang.settings_media_speed_test_segment_size_description
 import me.him188.ani.app.ui.lang.settings_media_speed_test_timeout
 import me.him188.ani.app.ui.lang.settings_media_speed_test_timeout_description
+import me.him188.ani.app.ui.lang.settings_media_pre_test_delay_for_new
+import me.him188.ani.app.ui.lang.settings_media_pre_test_delay_for_new_description
+import me.him188.ani.app.ui.lang.settings_media_pre_test_on_details
+import me.him188.ani.app.ui.lang.settings_media_pre_test_on_details_description
 import me.him188.ani.app.ui.lang.settings_media_subtitle_language
 import me.him188.ani.app.ui.lang.settings_media_wait_time_10s
 import me.him188.ani.app.ui.lang.settings_media_wait_time_15s
+import me.him188.ani.app.ui.lang.settings_media_wait_time_1s
+import me.him188.ani.app.ui.lang.settings_media_wait_time_2s
 import me.him188.ani.app.ui.lang.settings_media_wait_time_3s
 import me.him188.ani.app.ui.lang.settings_media_wait_time_5s
 import me.him188.ani.app.ui.lang.settings_media_wait_time_8s
