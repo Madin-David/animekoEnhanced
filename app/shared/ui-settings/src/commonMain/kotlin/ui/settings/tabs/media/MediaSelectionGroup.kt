@@ -488,7 +488,7 @@ internal fun SettingsScope.MediaSelectionGroup(
                     HorizontalDividerItem()
 
                     SwitchItem(
-                        checked = { mediaSelectorSettings.preTestSpeedOnSubjectDetails },
+                        checked = mediaSelectorSettings.preTestSpeedOnSubjectDetails,
                         onCheckedChange = {
                             state.mediaSelectorSettingsState.update(
                                 mediaSelectorSettings.copy(preTestSpeedOnSubjectDetails = it),
