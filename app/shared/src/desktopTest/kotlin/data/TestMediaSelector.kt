@@ -115,7 +115,8 @@ open class TestMediaSelector(
         mediaSourceOrder: List<String>,
         overrideUserSelection: Boolean,
         blacklistMediaIds: Set<String>,
-        allowNonPreferred: Boolean
+        allowNonPreferred: Boolean,
+        sourceTiers: me.him188.ani.app.domain.media.selector.MediaSelectorSourceTiers?
     ): Media? {
         throw UnsupportedOperationException()
     }
