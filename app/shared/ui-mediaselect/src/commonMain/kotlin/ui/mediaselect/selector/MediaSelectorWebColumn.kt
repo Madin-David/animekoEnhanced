@@ -250,10 +250,7 @@ private fun SpeedTestDisplay(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        speedTestResult == null -> {
-            // 未测试
-        }
-        speedTestResult.success -> {
+        speedTestResult?.success == true -> {
             Text(
                 "${formatSpeed(speedTestResult.speedBytesPerSecond)} · ${speedTestResult.latencyMs}ms",
                 modifier = modifier,
@@ -266,7 +263,7 @@ private fun SpeedTestDisplay(
                 "--",
                 modifier = modifier,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

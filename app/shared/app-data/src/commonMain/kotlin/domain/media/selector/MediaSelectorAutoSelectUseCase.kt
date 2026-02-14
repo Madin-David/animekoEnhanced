@@ -73,7 +73,7 @@ class MediaSelectorAutoSelectUseCaseImpl(
                         // 如果启用了速度测试, 先测试源速度并更新 tiers
                         val updatedSourceTiers = if (mediaSelectorSettings.enableSourceSpeedTest) {
                             val speedTester = MediaSourceSpeedTester(httpClientProvider.get())
-                            val candidateMedia = mediaSelector.filteredCandidatesMedia.first()
+                            val candidateMedia = mediaSelector.filteredCandidatesMedia.first { it.isNotEmpty() }
 
                             logger.info { "[MediaSelectorAutoSelect] Starting speed test for ${candidateMedia.size} media sources" }
                             println("[SpeedTest] AutoSelect: Testing ${candidateMedia.size} media sources")
