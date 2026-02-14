@@ -86,14 +86,18 @@ class MediaSourceSpeedTester(
             }
         }.awaitAll()
 
-        // 按速度排序 (速度快的在前)
+        // 返回所有结果（包括失败的），按成功优先、速度从快到慢排序
         results
-            .filter { it.success }
-            .sortedByDescending { it.speedBytesPerSecond }
-            .also { successfulResults ->
-                logger.info("Speed test completed: ${successfulResults.size}/${mediaBySource.size} sources tested successfully")
-                successfulResults.forEach { result ->
-                    logger.debug("Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms")
+            .sortedWith(compareByDescending<SpeedTestResult> { it.success }.thenByDescending { it.speedBytesPerSecond })
+            .also { allResults ->
+                val successCount = allResults.count { it.success }
+                logger.info("Speed test completed: $successCount/${mediaBySource.size} sources tested successfully")
+                allResults.forEach { result ->
+                    if (result.success) {
+                        logger.debug("Source ${result.mediaSourceId}: ${result.speedBytesPerSecond / 1024} KB/s, latency: ${result.latencyMs}ms")
+                    } else {
+                        logger.debug("Source ${result.mediaSourceId}: FAILED")
+                    }
                 }
             }
     }
