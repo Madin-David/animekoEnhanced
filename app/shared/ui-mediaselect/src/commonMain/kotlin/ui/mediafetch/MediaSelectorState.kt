@@ -181,6 +181,23 @@ class MediaSelectorState(
         GlobalKoin.get()
     }
 
+    init {
+        // 当候选媒体源可用时自动触发速度测试
+        backgroundScope.launch {
+            mediaSelector.filteredCandidates.collect { candidates ->
+                val medias = candidates.mapNotNull { it.result }
+                if (medias.isNotEmpty()) {
+                    // 检查 manager 中已有结果的源，避免重复测试
+                    val existingResults = speedTestResultManager.speedTestResults.value
+                    val newMedias = medias.filter { it.mediaSourceId !in existingResults }
+                    if (newMedias.isNotEmpty()) {
+                        triggerSpeedTests(newMedias)
+                    }
+                }
+            }
+        }
+    }
+
     @Immutable
     data class Presentation(
         val filteredCandidates: List<MaybeExcludedMedia>,
